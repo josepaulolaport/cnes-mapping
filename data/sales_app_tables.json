@@ -1,0 +1,509 @@
+{
+  "sales_app_tables": {
+    "metadata": {
+      "total_essential_tables": 18,
+      "total_recommended_tables": 41,
+      "data_source": "CNES Database May 2026",
+      "critical_note": "24.5% of establishments are deactivated - always filter by active status"
+    },
+    
+    "core_entities": {
+      "establishments": {
+        "priority": "CRITICAL",
+        "tables": [
+          {
+            "name": "tbEstabelecimento202605.csv",
+            "rows": 623208,
+            "purpose": "Master establishment data",
+            "key_fields": [
+              "CO_UNIDADE (ID)",
+              "NO_RAZAO_SOCIAL (legal name)",
+              "NO_FANTASIA (trade name)",
+              "NO_LOGRADOURO (street)",
+              "NU_ENDERECO (number)",
+              "NO_BAIRRO (neighborhood)",
+              "CO_CEP (zip)",
+              "CO_MUNICIPIO (city)",
+              "NU_TELEFONE (phone)",
+              "NO_EMAIL (email)",
+              "NO_URL (website)",
+              "NU_LATITUDE (lat)",
+              "NU_LONGITUDE (lng)",
+              "CO_TIPO_ESTABELECIMENTO (type)",
+              "NU_CNPJ (tax ID)",
+              "CO_NATUREZA_JUR (legal type)"
+            ],
+            "sales_use_cases": [
+              "Lead generation",
+              "Contact information",
+              "Route planning",
+              "Facility profiling"
+            ]
+          },
+          {
+            "name": "tbTipoEstabelecimento202605.csv",
+            "rows": 27,
+            "purpose": "Facility type lookup",
+            "key_fields": ["CO_TIPO_ESTABELECIMENTO", "DS_TIPO_ESTABELECIMENTO"],
+            "sales_use_cases": ["Filter by facility type (hospital, clinic, pharmacy)"]
+          }
+        ]
+      },
+      
+      "professionals": {
+        "priority": "CRITICAL",
+        "tables": [
+          {
+            "name": "tbDadosProfissionalSus202605.csv",
+            "rows": 7761583,
+            "purpose": "Master professional/doctor registry",
+            "key_fields": [
+              "CO_PROFISSIONAL_SUS (ID)",
+              "NO_PROFISSIONAL (name)",
+              "CO_CPF (tax ID - masked)",
+              "CO_CNS (health card)"
+            ],
+            "sales_use_cases": [
+              "Doctor identification",
+              "Contact list building"
+            ]
+          },
+          {
+            "name": "rlEstabEquipeProf202605.csv",
+            "rows": 870453,
+            "purpose": "Links doctors to establishments",
+            "key_fields": [
+              "CO_UNIDADE (establishment)",
+              "CO_PROFISSIONAL_SUS (professional)",
+              "CO_CBO (occupation/specialty)",
+              "DT_ENTRADA (start date)",
+              "DT_DESLIGAMENTO (end date)",
+              "TP_SUS_NAO_SUS (public/private)"
+            ],
+            "sales_use_cases": [
+              "Find doctors at facility",
+              "Target by specialty",
+              "Identify decision makers"
+            ]
+          },
+          {
+            "name": "tbCargaHorariaSus202605.csv",
+            "rows": 6653255,
+            "purpose": "Professional working hours and credentials",
+            "key_fields": [
+              "CO_UNIDADE (establishment)",
+              "CO_PROFISSIONAL_SUS (professional)",
+              "CO_CBO (occupation)",
+              "QT_CARGA_HORARIA_AMBULATORIAL (hours)",
+              "CO_CONSELHO_CLASSE (council)",
+              "NU_REGISTRO (license number)",
+              "SG_UF_CRM (state registration)"
+            ],
+            "sales_use_cases": [
+              "Professional credentials",
+              "Verify license numbers",
+              "Contact doctors with multiple locations"
+            ]
+          }
+        ]
+      },
+      
+      "deactivation_tracking": {
+        "priority": "CRITICAL",
+        "description": "Track facility and professional active/inactive status",
+        "tables": [
+          {
+            "name": "tbMotivoDesativacao202605.csv",
+            "rows": 14,
+            "purpose": "Deactivation reason lookup",
+            "key_fields": ["CD_MOTIVO_DESAB", "DS_MOTIVO_DESAB"],
+            "sales_use_cases": [
+              "Filter out closed facilities",
+              "Identify renovation opportunities (code 03)",
+              "Avoid wasting time on permanently closed locations",
+              "Understand facility closure patterns"
+            ],
+            "statistics": "24.5% of establishments have deactivation codes"
+          }
+        ],
+        "implementation_notes": {
+          "establishment_status": {
+            "field": "CO_MOTIVO_DESAB in tbEstabelecimento",
+            "active": "NULL or empty string",
+            "deactivated": "Contains reason code",
+            "filter_example": "WHERE (CO_MOTIVO_DESAB IS NULL OR CO_MOTIVO_DESAB = '')"
+          },
+          "professional_status": {
+            "field": "DT_DESLIGAMENTO in rlEstabEquipeProf",
+            "active": "NULL or empty string",
+            "terminated": "Has date value",
+            "filter_example": "WHERE (DT_DESLIGAMENTO IS NULL OR DT_DESLIGAMENTO = '')"
+          },
+          "key_codes": {
+            "temporary_opportunities": ["03 - Under renovation"],
+            "permanent_avoid": ["05 - Closed by court", "10 - Business closure"],
+            "verify_status": ["06 - No updates >1 year", "08 - No updates >6 months"]
+          }
+        }
+      },
+      
+      "geography": {
+        "priority": "CRITICAL",
+        "tables": [
+          {
+            "name": "tbMunicipio202605.csv",
+            "rows": 5607,
+            "purpose": "Municipality reference",
+            "key_fields": ["CO_MUNICIPIO", "NO_MUNICIPIO", "CO_SIGLA_ESTADO"],
+            "sales_use_cases": [
+              "Territory management",
+              "Geographic filtering",
+              "Route planning"
+            ]
+          },
+          {
+            "name": "tbEstado202605.csv",
+            "rows": 27,
+            "purpose": "State reference",
+            "key_fields": ["CO_SIGLA_ESTADO", "NO_ESTADO"],
+            "sales_use_cases": ["Regional filtering", "State-level reports"]
+          }
+        ]
+      }
+    },
+    
+    "capabilities": {
+      "services_specialties": {
+        "priority": "CRITICAL",
+        "tables": [
+          {
+            "name": "rlEstabServClass202605.csv",
+            "rows": 1442080,
+            "purpose": "Services offered by each facility",
+            "key_fields": [
+              "CO_UNIDADE (establishment)",
+              "CO_SERVICO (service code)",
+              "CO_CLASSIFICACAO (classification)",
+              "ST_ATIVO_SN (active status)"
+            ],
+            "sales_use_cases": [
+              "Find facilities by specialty",
+              "Target orthopedic clinics",
+              "Filter by cardiology, oncology, etc."
+            ]
+          },
+          {
+            "name": "tbServicoEspecializado202605.csv",
+            "rows": 73,
+            "purpose": "Specialized services catalog",
+            "key_fields": ["CO_SERVICO_ESPECIALIZADO", "DS_SERVICO_ESPECIALIZADO"],
+            "sales_use_cases": ["Service type lookup", "Specialty filtering"]
+          },
+          {
+            "name": "tbClassificacaoServico202605.csv",
+            "rows": 459,
+            "purpose": "Detailed service classifications",
+            "key_fields": [
+              "CO_CLASSIFICACAO_SERVICO",
+              "CO_SERVICO_ESPECIALIZADO",
+              "DS_CLASSIFICACAO_SERVICO"
+            ],
+            "sales_use_cases": ["Granular service filtering (adult vs pediatric)"]
+          }
+        ]
+      },
+      
+      "equipment": {
+        "priority": "CRITICAL",
+        "tables": [
+          {
+            "name": "rlEstabEquipamento202605.csv",
+            "rows": 1348380,
+            "purpose": "Equipment inventory by facility",
+            "key_fields": [
+              "CO_UNIDADE (establishment)",
+              "CO_EQUIPAMENTO (equipment code)",
+              "CO_TIPO_EQUIPAMENTO (equipment type)",
+              "QT_EQUIPAMENTO (quantity)",
+              "IND_FUNCIONAMENTO (operational status)"
+            ],
+            "sales_use_cases": [
+              "Know what they already have",
+              "Identify upgrade opportunities",
+              "Equipment replacement targeting",
+              "Cross-sell compatible products"
+            ]
+          },
+          {
+            "name": "tbEquipamento202605.csv",
+            "rows": "small",
+            "purpose": "Equipment type catalog",
+            "key_fields": ["CO_EQUIPAMENTO", "DS_EQUIPAMENTO"],
+            "sales_use_cases": ["Equipment type lookup", "Product catalog matching"]
+          }
+        ]
+      }
+    },
+    
+    "business_intelligence": {
+      "ownership_management": {
+        "priority": "HIGH",
+        "tables": [
+          {
+            "name": "tbMantenedora202605.csv",
+            "purpose": "Facility owners/managers",
+            "sales_use_cases": [
+              "Identify corporate chains",
+              "Target parent companies",
+              "Group purchasing organizations"
+            ]
+          },
+          {
+            "name": "tbNaturezaJuridica202605.csv",
+            "purpose": "Legal entity types",
+            "sales_use_cases": [
+              "Public vs private",
+              "Nonprofit identification",
+              "Purchasing authority assessment"
+            ]
+          },
+          {
+            "name": "tbGestao202605.csv",
+            "purpose": "Management types",
+            "sales_use_cases": ["Governance model", "Decision-making structure"]
+          }
+        ]
+      },
+      
+      "decision_makers": {
+        "priority": "HIGH",
+        "tables": [
+          {
+            "name": "rlEstabProfComissao202605.csv",
+            "rows": 64958,
+            "purpose": "Committee members and administrators",
+            "sales_use_cases": [
+              "Find clinical directors",
+              "Identify purchasing committee members",
+              "Key influencers"
+            ]
+          },
+          {
+            "name": "rlEstabRepresentante202605.csv",
+            "purpose": "Official facility representatives",
+            "sales_use_cases": ["Authorized contacts", "Legal representatives"]
+          }
+        ]
+      },
+      
+      "quality_accreditation": {
+        "priority": "MEDIUM",
+        "tables": [
+          {
+            "name": "tbAvaliacao202605.csv",
+            "purpose": "Quality evaluation types",
+            "sales_use_cases": ["Premium facility identification"]
+          },
+          {
+            "name": "rlEstabAvaliacao202605.csv",
+            "purpose": "Facility accreditations",
+            "sales_use_cases": [
+              "Target certified facilities",
+              "Quality indicator",
+              "Higher purchasing power"
+            ]
+          }
+        ]
+      }
+    },
+    
+    "operational_details": {
+      "priority": "MEDIUM",
+      "tables": [
+        {
+          "name": "tbEstabHorarioAtend202605.csv",
+          "purpose": "Operating hours",
+          "sales_use_cases": ["Schedule sales visits", "24/7 facilities = higher volume"]
+        },
+        {
+          "name": "tbLeito202605.csv",
+          "rows": 69,
+          "purpose": "Hospital bed types",
+          "sales_use_cases": ["Facility size indicator", "Capacity assessment"]
+        },
+        {
+          "name": "rlEstabTeleCnes202605.csv",
+          "purpose": "Phone directory",
+          "sales_use_cases": ["Department-specific contacts"]
+        }
+      ]
+    },
+    
+    "support_tables": {
+      "priority": "LOW-MEDIUM",
+      "tables": [
+        "tbConselhoClasse202605.csv - Professional councils lookup",
+        "tbAtividade202605.csv - Healthcare activities",
+        "tbTipoUnidade202605.csv - Unit types",
+        "tbSegmento202605.csv - Market segments",
+        "tbConvenio202605.csv - Insurance agreements",
+        "rlEstabComplementar202605.csv - Additional data",
+        "rlEstabEndCompl202605.csv - Address details"
+      ]
+    },
+    
+    "implementation_phases": {
+      "phase_1_mvp": {
+        "description": "Core functionality - lead generation and contact discovery",
+        "tables": [
+          "tbEstabelecimento202605.csv",
+          "tbMotivoDesativacao202605.csv",
+          "tbDadosProfissionalSus202605.csv",
+          "rlEstabEquipeProf202605.csv",
+          "tbMunicipio202605.csv",
+          "tbEstado202605.csv",
+          "tbTipoEstabelecimento202605.csv"
+        ],
+        "features": [
+          "Search facilities by location",
+          "Filter active vs deactivated facilities",
+          "View facility contact info",
+          "See active doctors at facility",
+          "Basic filtering by type",
+          "Deactivation status and reasons"
+        ]
+      },
+      
+      "phase_2_intelligence": {
+        "description": "Add capability intelligence",
+        "tables": [
+          "rlEstabServClass202605.csv",
+          "tbServicoEspecializado202605.csv",
+          "tbClassificacaoServico202605.csv",
+          "rlEstabEquipamento202605.csv",
+          "tbEquipamento202605.csv",
+          "tbCargaHorariaSus202605.csv"
+        ],
+        "features": [
+          "Filter by specialty",
+          "View equipment inventory",
+          "Professional credentials",
+          "Service portfolio analysis"
+        ]
+      },
+      
+      "phase_3_business": {
+        "description": "Business intelligence and targeting",
+        "tables": [
+          "tbMantenedora202605.csv",
+          "tbNaturezaJuridica202605.csv",
+          "rlEstabProfComissao202605.csv",
+          "tbAvaliacao202605.csv",
+          "rlEstabAvaliacao202605.csv",
+          "tbEstabHorarioAtend202605.csv"
+        ],
+        "features": [
+          "Ownership analysis",
+          "Decision maker identification",
+          "Quality certifications",
+          "Operating hours",
+          "Account hierarchy"
+        ]
+      }
+    },
+    
+    "key_relationships": {
+      "facility_to_doctors": {
+        "path": "tbEstabelecimento → rlEstabEquipeProf → tbDadosProfissionalSus",
+        "description": "Find all doctors at a facility"
+      },
+      "facility_to_services": {
+        "path": "tbEstabelecimento → rlEstabServClass → tbServicoEspecializado",
+        "description": "Find facility specialties"
+      },
+      "facility_to_equipment": {
+        "path": "tbEstabelecimento → rlEstabEquipamento → tbEquipamento",
+        "description": "Find equipment at facility"
+      },
+      "facility_to_location": {
+        "path": "tbEstabelecimento → tbMunicipio → tbEstado",
+        "description": "Geographic hierarchy"
+      },
+      "doctor_to_specialty": {
+        "path": "tbDadosProfissionalSus → rlEstabEquipeProf → CO_CBO (occupation code)",
+        "description": "Find doctor's specialty"
+      }
+    },
+    
+    "sample_queries": {
+      "find_active_facilities": {
+        "description": "Find only ACTIVE facilities (exclude deactivated)",
+        "tables_needed": [
+          "tbEstabelecimento",
+          "tbMotivoDesativacao"
+        ],
+        "filters": "(CO_MOTIVO_DESAB IS NULL OR CO_MOTIVO_DESAB = '')",
+        "importance": "CRITICAL - always include this filter"
+      },
+      
+      "find_active_doctors": {
+        "description": "Find only ACTIVE doctors at a facility",
+        "tables_needed": [
+          "tbDadosProfissionalSus",
+          "rlEstabEquipeProf"
+        ],
+        "filters": "CO_UNIDADE = 'X' AND (DT_DESLIGAMENTO IS NULL OR DT_DESLIGAMENTO = '')",
+        "importance": "HIGH - verify doctors are still employed"
+      },
+      
+      "renovation_opportunities": {
+        "description": "Find facilities under renovation (equipment opportunity)",
+        "tables_needed": [
+          "tbEstabelecimento",
+          "tbMotivoDesativacao"
+        ],
+        "filters": "CO_MOTIVO_DESAB = '03'",
+        "business_value": "Facilities under renovation often need equipment upgrades"
+      },
+      
+      "find_orthopedic_facilities": {
+        "description": "Find all orthopedic clinics in São Paulo",
+        "tables_needed": [
+          "tbEstabelecimento",
+          "rlEstabServClass",
+          "tbServicoEspecializado",
+          "tbMunicipio"
+        ],
+        "filters": "CO_SERVICO = '155' AND CO_MUNICIPIO LIKE 'SP%'"
+      },
+      
+      "find_cardiologists": {
+        "description": "Find cardiologists at Hospital X",
+        "tables_needed": [
+          "tbDadosProfissionalSus",
+          "rlEstabEquipeProf"
+        ],
+        "filters": "CO_UNIDADE = 'X' AND CO_CBO LIKE '2231%' (cardiologist CBO codes)"
+      },
+      
+      "equipment_opportunities": {
+        "description": "Find facilities without MRI equipment",
+        "tables_needed": [
+          "tbEstabelecimento",
+          "rlEstabEquipamento"
+        ],
+        "filters": "NOT EXISTS (equipment = MRI code)"
+      },
+      
+      "territory_view": {
+        "description": "All facilities in my territory",
+        "tables_needed": [
+          "tbEstabelecimento",
+          "tbMunicipio",
+          "tbEstado"
+        ],
+        "filters": "CO_MUNICIPIO IN (territory list)"
+      }
+    }
+  }
+}

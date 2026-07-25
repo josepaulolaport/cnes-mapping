@@ -1,0 +1,6 @@
+;; Template pgloader config — use run_mcp_test_migration.sh which generates
+;; migrate_sqlite_to_mcp_test.generated.load from DATABASE_URL at runtime.
+;;
+;; Manual run:
+;;   export DATABASE_URL=postgresql://user:pass@localhost:5432/dbname
+;;   ./scripts/run_mcp_test_migration.sh

@@ -1,0 +1,438 @@
+{
+  "schema_mapping": {
+    "version": "1.0",
+    "source": "CNES Database May 2026",
+    "target": "Sales App Database",
+    "created_date": "2026-06-18",
+    
+    "tables": {
+      "tbEstabelecimento202605.csv": {
+        "new_name": "facilities",
+        "description": "Health facilities and establishments",
+        "primary_key": "facility_id",
+        "estimated_rows": 623208,
+        "columns": {
+          "CO_UNIDADE": {
+            "new_name": "facility_id",
+            "type": "VARCHAR(20)",
+            "is_primary_key": true,
+            "description": "Unique facility identifier"
+          },
+          "CO_CNES": {
+            "new_name": "cnes_code",
+            "type": "VARCHAR(20)",
+            "description": "Official CNES registration code"
+          },
+          "NO_RAZAO_SOCIAL": {
+            "new_name": "legal_name",
+            "type": "VARCHAR(200)",
+            "description": "Legal company name"
+          },
+          "NO_FANTASIA": {
+            "new_name": "trade_name",
+            "type": "VARCHAR(200)",
+            "description": "Business/trade name (DBA)"
+          },
+          "NO_LOGRADOURO": {
+            "new_name": "street_address",
+            "type": "VARCHAR(200)",
+            "description": "Street name"
+          },
+          "NU_ENDERECO": {
+            "new_name": "street_number",
+            "type": "VARCHAR(20)",
+            "description": "Street number"
+          },
+          "NO_COMPLEMENTO": {
+            "new_name": "address_complement",
+            "type": "VARCHAR(100)",
+            "description": "Address complement (apt, suite, etc.)"
+          },
+          "NO_BAIRRO": {
+            "new_name": "neighborhood",
+            "type": "VARCHAR(100)",
+            "description": "Neighborhood/district"
+          },
+          "CO_CEP": {
+            "new_name": "postal_code",
+            "type": "VARCHAR(10)",
+            "description": "ZIP/postal code"
+          },
+          "CO_MUNICIPIO": {
+            "new_name": "municipality_id",
+            "type": "VARCHAR(10)",
+            "is_foreign_key": true,
+            "references": "municipalities.municipality_id",
+            "description": "Municipality/city identifier"
+          },
+          "NU_TELEFONE": {
+            "new_name": "phone_number",
+            "type": "VARCHAR(20)",
+            "description": "Primary phone number"
+          },
+          "NO_EMAIL": {
+            "new_name": "email",
+            "type": "VARCHAR(100)",
+            "description": "Email address"
+          },
+          "NO_URL": {
+            "new_name": "website_url",
+            "type": "VARCHAR(200)",
+            "description": "Website URL"
+          },
+          "NU_LATITUDE": {
+            "new_name": "latitude",
+            "type": "DECIMAL(10,7)",
+            "description": "GPS latitude coordinate"
+          },
+          "NU_LONGITUDE": {
+            "new_name": "longitude",
+            "type": "DECIMAL(10,7)",
+            "description": "GPS longitude coordinate"
+          },
+          "NU_CNPJ": {
+            "new_name": "tax_id_cnpj",
+            "type": "VARCHAR(20)",
+            "description": "Company tax ID (CNPJ)"
+          },
+          "NU_CNPJ_MANTENEDORA": {
+            "new_name": "owner_tax_id",
+            "type": "VARCHAR(20)",
+            "is_foreign_key": true,
+            "references": "facility_owners.tax_id",
+            "description": "Owner/maintainer tax ID"
+          },
+          "CO_TIPO_ESTABELECIMENTO": {
+            "new_name": "facility_type_code",
+            "type": "VARCHAR(10)",
+            "is_foreign_key": true,
+            "references": "reference_data (type=facility_type)",
+            "description": "Facility type code"
+          },
+          "CO_NATUREZA_JUR": {
+            "new_name": "legal_entity_type_code",
+            "type": "VARCHAR(10)",
+            "description": "Legal entity type code"
+          },
+          "CO_MOTIVO_DESAB": {
+            "new_name": "deactivation_reason_code",
+            "type": "VARCHAR(10)",
+            "is_foreign_key": true,
+            "nullable": true,
+            "references": "reference_data (type=deactivation_reason)",
+            "description": "Deactivation reason (NULL = active facility)"
+          },
+          "TP_ESTAB_SEMPRE_ABERTO": {
+            "new_name": "is_24_7",
+            "type": "BOOLEAN",
+            "description": "Is facility open 24/7?"
+          },
+          "ST_CONEXAO_INTERNET": {
+            "new_name": "has_internet",
+            "type": "BOOLEAN",
+            "description": "Has internet connection?"
+          },
+          "TO_CHAR(DT_ATUALIZACAO,'DD/MM/YYYY')": {
+            "new_name": "last_updated_date",
+            "type": "DATE",
+            "description": "Last update date"
+          }
+        }
+      },
+      
+      "tbDadosProfissionalSus202605.csv": {
+        "new_name": "professionals",
+        "description": "Healthcare professionals (doctors, nurses, etc.)",
+        "primary_key": "professional_id",
+        "estimated_rows": 7761583,
+        "columns": {
+          "CO_PROFISSIONAL_SUS": {
+            "new_name": "professional_id",
+            "type": "VARCHAR(20)",
+            "is_primary_key": true,
+            "description": "Unique professional identifier"
+          },
+          "NO_PROFISSIONAL": {
+            "new_name": "full_name",
+            "type": "VARCHAR(200)",
+            "description": "Professional's full name"
+          },
+          "NO_SOCIAL": {
+            "new_name": "social_name",
+            "type": "VARCHAR(200)",
+            "nullable": true,
+            "description": "Social/preferred name"
+          },
+          "CO_CPF": {
+            "new_name": "tax_id",
+            "type": "VARCHAR(20)",
+            "description": "Tax ID (CPF - partially masked for privacy)"
+          },
+          "CO_CNS": {
+            "new_name": "health_card_number",
+            "type": "VARCHAR(20)",
+            "description": "National health card number"
+          },
+          "TO_CHAR(DT_ATUALIZACAO,'DD/MM/YYYY')": {
+            "new_name": "last_updated_date",
+            "type": "DATE",
+            "description": "Last update date"
+          }
+        }
+      },
+      
+      "rlEstabEquipeProf202605.csv": {
+        "new_name": "facility_professionals",
+        "description": "Links professionals to facilities (employment records)",
+        "primary_key": ["facility_id", "professional_id", "occupation_code"],
+        "estimated_rows": 870453,
+        "columns": {
+          "CO_UNIDADE": {
+            "new_name": "facility_id",
+            "type": "VARCHAR(20)",
+            "is_foreign_key": true,
+            "references": "facilities.facility_id",
+            "description": "Facility identifier"
+          },
+          "CO_PROFISSIONAL_SUS": {
+            "new_name": "professional_id",
+            "type": "VARCHAR(20)",
+            "is_foreign_key": true,
+            "references": "professionals.professional_id",
+            "description": "Professional identifier"
+          },
+          "CO_CBO": {
+            "new_name": "occupation_code",
+            "type": "VARCHAR(10)",
+            "description": "Brazilian Occupation Code (CBO) - indicates specialty"
+          },
+          "TP_SUS_NAO_SUS": {
+            "new_name": "service_type",
+            "type": "CHAR(1)",
+            "description": "S=SUS/public, N=private"
+          },
+          "DT_ENTRADA": {
+            "new_name": "start_date",
+            "type": "DATE",
+            "description": "Employment start date"
+          },
+          "DT_DESLIGAMENTO": {
+            "new_name": "termination_date",
+            "type": "DATE",
+            "nullable": true,
+            "description": "Employment end date (NULL = currently employed)"
+          },
+          "TO_CHAR(DT_ATUALIZACAO,'DD/MM/YYYY')": {
+            "new_name": "last_updated_date",
+            "type": "DATE",
+            "description": "Last update date"
+          }
+        }
+      },
+      
+      "rlEstabServClass202605.csv": {
+        "new_name": "facility_services",
+        "description": "Services and specialties offered by facilities",
+        "estimated_rows": 1442080,
+        "columns": {
+          "CO_UNIDADE": {
+            "new_name": "facility_id",
+            "type": "VARCHAR(20)",
+            "is_foreign_key": true,
+            "references": "facilities.facility_id"
+          },
+          "CO_SERVICO": {
+            "new_name": "service_code",
+            "type": "VARCHAR(10)",
+            "is_foreign_key": true,
+            "references": "reference_data (type=service_specialty)"
+          },
+          "CO_CLASSIFICACAO": {
+            "new_name": "classification_code",
+            "type": "VARCHAR(10)",
+            "is_foreign_key": true,
+            "references": "service_classifications.classification_id"
+          },
+          "ST_ATIVO_SN": {
+            "new_name": "is_active",
+            "type": "BOOLEAN",
+            "description": "Is this service currently active?"
+          }
+        }
+      },
+      
+      "rlEstabEquipamento202605.csv": {
+        "new_name": "facility_equipment",
+        "description": "Equipment inventory at facilities",
+        "estimated_rows": 1348380,
+        "columns": {
+          "CO_UNIDADE": {
+            "new_name": "facility_id",
+            "type": "VARCHAR(20)",
+            "is_foreign_key": true,
+            "references": "facilities.facility_id"
+          },
+          "CO_EQUIPAMENTO": {
+            "new_name": "equipment_code",
+            "type": "VARCHAR(10)",
+            "is_foreign_key": true,
+            "references": "reference_data (type=equipment_catalog)"
+          },
+          "CO_TIPO_EQUIPAMENTO": {
+            "new_name": "equipment_category_code",
+            "type": "VARCHAR(10)",
+            "is_foreign_key": true,
+            "references": "reference_data (type=equipment_category)"
+          },
+          "QT_EQUIPAMENTO": {
+            "new_name": "quantity",
+            "type": "INT",
+            "description": "Number of equipment units"
+          },
+          "IND_FUNCIONAMENTO": {
+            "new_name": "operational_status",
+            "type": "VARCHAR(10)",
+            "description": "E=In use, D=Inactive, M=Maintenance"
+          }
+        }
+      },
+      
+      "tbMunicipio202605.csv": {
+        "new_name": "municipalities",
+        "description": "Brazilian municipalities/cities",
+        "primary_key": "municipality_id",
+        "estimated_rows": 5607,
+        "columns": {
+          "CO_MUNICIPIO": {
+            "new_name": "municipality_id",
+            "type": "VARCHAR(10)",
+            "is_primary_key": true
+          },
+          "NO_MUNICIPIO": {
+            "new_name": "municipality_name",
+            "type": "VARCHAR(100)"
+          },
+          "CO_SIGLA_ESTADO": {
+            "new_name": "state_code",
+            "type": "CHAR(2)",
+            "is_foreign_key": true,
+            "references": "states.state_code"
+          }
+        }
+      },
+      
+      "tbEstado202605.csv": {
+        "new_name": "states",
+        "description": "Brazilian states",
+        "primary_key": "state_code",
+        "estimated_rows": 27,
+        "columns": {
+          "CO_SIGLA_ESTADO": {
+            "new_name": "state_code",
+            "type": "CHAR(2)",
+            "is_primary_key": true,
+            "description": "State abbreviation (SP, RJ, MG, etc.)"
+          },
+          "NO_ESTADO": {
+            "new_name": "state_name",
+            "type": "VARCHAR(100)",
+            "description": "State full name"
+          }
+        }
+      },
+      
+      "CONSOLIDATED_LOOKUPS": {
+        "new_name": "reference_data",
+        "description": "Consolidated lookup/reference table for all small code tables",
+        "primary_key": ["reference_type", "code"],
+        "source_tables": [
+          "tbTipoEstabelecimento202605.csv",
+          "tbMotivoDesativacao202605.csv",
+          "tbServicoEspecializado202605.csv",
+          "tbEquipamento202605.csv",
+          "tbConselhoClasse202605.csv",
+          "tbTipoEquipamento202605.csv"
+        ],
+        "columns": {
+          "reference_type": {
+            "type": "VARCHAR(50)",
+            "is_primary_key": true,
+            "description": "Type of reference (facility_type, deactivation_reason, service_specialty, equipment_catalog, professional_council, equipment_category)"
+          },
+          "code": {
+            "type": "VARCHAR(20)",
+            "is_primary_key": true,
+            "description": "Reference code"
+          },
+          "description": {
+            "type": "VARCHAR(500)",
+            "description": "Reference description/name"
+          },
+          "extra_data": {
+            "type": "JSON",
+            "nullable": true,
+            "description": "Type-specific additional fields"
+          },
+          "display_order": {
+            "type": "INT",
+            "nullable": true,
+            "description": "Sort order for display"
+          },
+          "is_active": {
+            "type": "BOOLEAN",
+            "default": true,
+            "description": "Is this reference active?"
+          },
+          "cnes_version": {
+            "type": "VARCHAR(10)",
+            "description": "CNES data version (e.g., 202607)"
+          },
+          "updated_at": {
+            "type": "TIMESTAMP",
+            "description": "When this record was last updated"
+          }
+        }
+      }
+    },
+    
+    "naming_patterns": {
+      "removed_prefixes": {
+        "CO_": "Código (Code) - removed, use descriptive names or *_code suffix",
+        "NO_": "Nome (Name) - removed, use *_name suffix",
+        "NU_": "Número (Number) - removed, use *_number suffix",
+        "DS_": "Descrição (Description) - removed, use descriptive names",
+        "TP_": "Tipo (Type) - removed, use *_type suffix",
+        "ST_": "Status - removed, use is_* or has_* prefixes",
+        "DT_": "Data (Date) - removed, use *_date suffix",
+        "IND_": "Indicador (Indicator) - removed, use is_* prefix",
+        "QT_": "Quantidade (Quantity) - removed, use quantity or count",
+        "SG_": "Sigla (Abbreviation) - removed, use *_code"
+      },
+      "new_conventions": {
+        "*_id": "Identifiers for entities",
+        "*_code": "Reference/lookup codes",
+        "*_name": "Names of entities",
+        "*_number": "Phone numbers, license numbers, etc.",
+        "*_date": "Date fields",
+        "is_*": "Boolean flags (is_active, is_24_7)",
+        "has_*": "Boolean possession (has_internet, has_equipment)",
+        "*_type": "Type classifiers",
+        "*_status": "Status indicators"
+      }
+    },
+    
+    "data_type_standards": {
+      "identifiers": "VARCHAR(20)",
+      "codes": "VARCHAR(10)",
+      "names": "VARCHAR(200)",
+      "descriptions": "VARCHAR(500)",
+      "urls_emails": "VARCHAR(200)",
+      "phones": "VARCHAR(20)",
+      "state_codes": "CHAR(2)",
+      "coordinates": "DECIMAL(10,7)",
+      "dates": "DATE or TIMESTAMP",
+      "booleans": "BOOLEAN (not CHAR(1))",
+      "integers": "INT"
+    }
+  }
+}

@@ -1,0 +1,40 @@
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# CNES source data (download separately from DATASUS)
+BASE_DE_DADOS_CNES_*/
+
+# Generated outputs & logs
+output/
+logs/
+import_errors/
+codedb.snapshot/
+*.db
+*.sqlite
+*.sqlite3
+
+# MCP runtime
+mcp/node_modules/
+mcp/analysis_runs/*
+!mcp/analysis_runs/.gitkeep
+.mcp.json
+.cursor/
+
+# Generated migration artifacts
+scripts/migrate_sqlite_to_mcp_test.generated.load
+
+# OS / editor
+.DS_Store
+*.swp
+*.swo
+__pycache__/
+*.py[cod]
+.Python
+.venv/
+venv/
+.envrc
+
+# Node build cache (dist is committed for MCP)
+mcp/dist/*.map

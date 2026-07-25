@@ -1,0 +1,2803 @@
+{
+  "schema": "mcp_test",
+  "domain": "Brazilian CNES health registry — medical equipment/pharma sales",
+  "generated_at": "2026-06-25T17:03:22.541509+00:00",
+  "critical_rules": [
+    "Always qualify tables: mcp_test.table_name (or set search_path to mcp_test)",
+    "Active facility: deactivation_reason_code IS NULL",
+    "Deactivated facility: deactivation_reason_code IS NOT NULL",
+    "Active professional at facility: termination_date IS NULL",
+    "Terminated professional: termination_date IS NOT NULL",
+    "Equipment in use: operational_status = 'E' AND quantity > 0",
+    "Prefer facility_search_view for facility discovery with aggregated counts",
+    "Prefer professional_search_view for professional discovery",
+    "occupation_code is CBO Brazilian occupation/specialty code — join occupations for labels",
+    "Find specialists by occupation_name ILIKE (e.g. '%DERMAT%') or occupation_code (e.g. 225135)",
+    "service_type: S=SUS/public, N=private",
+    "facility_type_code = legal establishment type (HOSPITAL, AMBULATORIO); unit_type_code/unit_type_name = CNES unit classification (CONSULTORIO ISOLADO, CLINICA/CENTRO DE ESPECIALIDADE)",
+    "unit_subtype_name is populated for ~21% of facilities (CAPS level, UPA, hospital porte); NULL otherwise",
+    "Filter private vs SUS payment via facility_agreements + agreement_types (SUS, PARTICULAR, etc.)"
+  ],
+  "tables": {
+    "agreement_types": {
+      "type": "table",
+      "description": "Payment/agreement types (SUS, particular, health plan). From tbConvenio.",
+      "row_count": 7,
+      "primary_key": [
+        "agreement_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "agreement_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "agreement_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facility_agreements": "facility_agreements.agreement_code = agreement_types.agreement_code"
+      }
+    },
+    "care_types": {
+      "type": "table",
+      "description": "Care delivery modes (ambulatorial, internacao). From tbAtendimentoPrestado.",
+      "row_count": 7,
+      "primary_key": [
+        "care_type_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "care_type_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "care_type_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facility_agreements": "facility_agreements.care_type_code = care_types.care_type_code"
+      }
+    },
+    "deactivation_reasons": {
+      "type": "table",
+      "description": "Reasons why facilities are deactivated. Join facilities.deactivation_reason_code when NOT NULL.",
+      "row_count": 14,
+      "primary_key": [
+        "deactivation_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "deactivation_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "deactivation_reason",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ]
+    },
+    "equipment_catalog": {
+      "type": "table",
+      "description": "Catalog of medical equipment types. Composite PK (equipment_code, equipment_type_code).",
+      "row_count": 144,
+      "primary_key": [
+        "equipment_code",
+        "equipment_type_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "equipment_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "equipment_type_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "equipment_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "renem_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ]
+    },
+    "equipment_categories": {
+      "type": "table",
+      "description": "Equipment type categories. Lookup for facility_equipment.equipment_category_code.",
+      "row_count": 12,
+      "primary_key": [
+        "category_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "category_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "category_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ]
+    },
+    "facilities": {
+      "type": "table",
+      "description": "Health facilities/establishments - PRIMARY TARGET for sales. ~623k rows.",
+      "row_count": 623208,
+      "primary_key": [
+        "facility_id"
+      ],
+      "foreign_keys": [
+        {
+          "column": "owner_tax_id",
+          "references": "maintainers.tax_id"
+        },
+        {
+          "column": "facility_type_code",
+          "references": "facility_types.facility_type_code"
+        },
+        {
+          "column": "deactivation_reason_code",
+          "references": "deactivation_reasons.deactivation_code"
+        },
+        {
+          "column": "municipality_id",
+          "references": "municipalities.municipality_id"
+        }
+      ],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": false,
+          "comment": "Unique facility identifier (CNES CO_UNIDADE)"
+        },
+        {
+          "name": "cnes_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "legal_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "trade_name",
+          "type": "text",
+          "nullable": true,
+          "comment": "Business/trade name (most commonly used for display)"
+        },
+        {
+          "name": "street_address",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "street_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "address_complement",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "neighborhood",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "postal_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "municipality_id",
+          "type": "text",
+          "nullable": true,
+          "comment": "FK to municipalities.municipality_id (IBGE code)"
+        },
+        {
+          "name": "health_region_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "phone_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "fax_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "website_url",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "latitude",
+          "type": "double precision",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "longitude",
+          "type": "double precision",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "tax_id_cnpj",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "tax_id_cpf",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "owner_tax_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "legal_entity_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "entity_type",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "facility_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "primary_activity_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "unit_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "operating_hours_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "deactivation_reason_code",
+          "type": "text",
+          "nullable": true,
+          "comment": "NULL = ACTIVE facility, NOT NULL = deactivated (~24.5% deactivated)"
+        },
+        {
+          "name": "is_24_7",
+          "type": "integer",
+          "nullable": true,
+          "comment": "1 = open 24 hours, 7 days a week"
+        },
+        {
+          "name": "is_philanthropic",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "has_internet",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "has_formal_contract",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "license_issue_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "sanitary_license_expiry",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "unit_type_name",
+          "type": "text",
+          "nullable": true,
+          "comment": "Denormalized from tbTipoUnidade via unit_type_code"
+        },
+        {
+          "name": "unit_subtype_name",
+          "type": "text",
+          "nullable": true,
+          "comment": "Denormalized from rlEstabSubTipo + tbSubTipo; NULL if no subtype registered"
+        }
+      ],
+      "joins": {
+        "municipalities": "facilities.municipality_id = municipalities.municipality_id",
+        "facility_types": "facilities.facility_type_code = facility_types.facility_type_code",
+        "deactivation_reasons": "facilities.deactivation_reason_code = deactivation_reasons.deactivation_code",
+        "maintainers": "facilities.owner_tax_id = maintainers.tax_id"
+      },
+      "common_filters": [
+        "deactivation_reason_code IS NULL"
+      ],
+      "example_queries": [
+        "SELECT trade_name, unit_type_name, unit_subtype_name FROM mcp_test.facilities WHERE deactivation_reason_code IS NULL AND unit_type_code = '36' LIMIT 10"
+      ]
+    },
+    "facility_agreements": {
+      "type": "table",
+      "description": "Payment/care agreements accepted by facility. From rlEstabAtendPrestConv.",
+      "row_count": 1091997,
+      "primary_key": [
+        "facility_id",
+        "care_type_code",
+        "agreement_code"
+      ],
+      "foreign_keys": [
+        {
+          "column": "facility_id",
+          "references": "facilities.facility_id"
+        },
+        {
+          "column": "care_type_code",
+          "references": "care_types.care_type_code"
+        },
+        {
+          "column": "agreement_code",
+          "references": "agreement_types.agreement_code"
+        }
+      ],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "care_type_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "agreement_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "origin_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facilities": "facility_agreements.facility_id = facilities.facility_id",
+        "agreement_types": "facility_agreements.agreement_code = agreement_types.agreement_code",
+        "care_types": "facility_agreements.care_type_code = care_types.care_type_code"
+      },
+      "example_queries": [
+        "SELECT f.trade_name, at.agreement_name FROM mcp_test.facility_agreements fa JOIN mcp_test.facilities f ON fa.facility_id = f.facility_id JOIN mcp_test.agreement_types at ON fa.agreement_code = at.agreement_code WHERE at.agreement_name = 'PARTICULAR' AND f.deactivation_reason_code IS NULL LIMIT 10"
+      ]
+    },
+    "facility_equipment": {
+      "type": "table",
+      "description": "Equipment inventory at facilities.",
+      "row_count": 1348380,
+      "primary_key": [
+        "facility_id",
+        "equipment_code",
+        "equipment_category_code"
+      ],
+      "foreign_keys": [
+        {
+          "column": "facility_id",
+          "references": "facilities.facility_id"
+        },
+        {
+          "column": "equipment_category_code",
+          "references": "equipment_categories.category_code"
+        }
+      ],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "equipment_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "equipment_category_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "nullable": true,
+          "comment": "Number of units; use quantity > 0 with operational_status = E"
+        },
+        {
+          "name": "operational_status",
+          "type": "text",
+          "nullable": true,
+          "comment": "E=In use, D=Inactive, M=Maintenance. Filter E for active equipment."
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facilities": "facility_equipment.facility_id = facilities.facility_id",
+        "equipment_categories": "facility_equipment.equipment_category_code = equipment_categories.category_code"
+      },
+      "common_filters": [
+        "operational_status = 'E'",
+        "quantity > 0"
+      ],
+      "example_queries": [
+        "SELECT f.trade_name, fe.equipment_code, fe.quantity FROM mcp_test.facility_equipment fe JOIN mcp_test.facilities f ON fe.facility_id = f.facility_id WHERE fe.operational_status = 'E' AND f.deactivation_reason_code IS NULL LIMIT 10"
+      ]
+    },
+    "facility_physical_installations": {
+      "type": "table",
+      "description": "Physical installations at each facility. From rlEstabInstFisiAssist.",
+      "row_count": 1119338,
+      "primary_key": [
+        "facility_id",
+        "installation_code"
+      ],
+      "foreign_keys": [
+        {
+          "column": "facility_id",
+          "references": "facilities.facility_id"
+        },
+        {
+          "column": "installation_code",
+          "references": "physical_installations.installation_code"
+        }
+      ],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "installation_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "bed_count",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "origin_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facilities": "facility_physical_installations.facility_id = facilities.facility_id",
+        "physical_installations": "facility_physical_installations.installation_code = physical_installations.installation_code"
+      }
+    },
+    "facility_professionals": {
+      "type": "table",
+      "description": "Links professionals to facilities - WHO WORKS WHERE. ~864k rows.",
+      "row_count": 863664,
+      "primary_key": [
+        "facility_id",
+        "professional_id",
+        "occupation_code"
+      ],
+      "foreign_keys": [
+        {
+          "column": "facility_id",
+          "references": "facilities.facility_id"
+        },
+        {
+          "column": "professional_id",
+          "references": "professionals.professional_id"
+        },
+        {
+          "column": "occupation_code",
+          "references": "occupations.occupation_code"
+        }
+      ],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "professional_id",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "occupation_code",
+          "type": "text",
+          "nullable": false,
+          "comment": "CBO code indicating specialty/role (e.g. physician, nurse)"
+        },
+        {
+          "name": "municipality_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "service_area_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "team_sequence_number",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "service_type",
+          "type": "text",
+          "nullable": true,
+          "comment": "S=SUS/public, N=private"
+        },
+        {
+          "name": "employment_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "start_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "termination_date",
+          "type": "text",
+          "nullable": true,
+          "comment": "NULL = currently employed, NOT NULL = terminated"
+        },
+        {
+          "name": "micro_area_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "other_team_cnes",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facilities": "facility_professionals.facility_id = facilities.facility_id",
+        "professionals": "facility_professionals.professional_id = professionals.professional_id",
+        "occupations": "facility_professionals.occupation_code = occupations.occupation_code"
+      },
+      "common_filters": [
+        "termination_date IS NULL"
+      ],
+      "example_queries": [
+        "SELECT fp.facility_id, p.full_name, o.occupation_name FROM mcp_test.facility_professionals fp JOIN mcp_test.professionals p ON fp.professional_id = p.professional_id JOIN mcp_test.occupations o ON fp.occupation_code = o.occupation_code WHERE fp.termination_date IS NULL LIMIT 10"
+      ]
+    },
+    "facility_representatives": {
+      "type": "table",
+      "description": "Official legal representatives at facilities. From rlEstabRepresentante.",
+      "row_count": 2704,
+      "primary_key": [
+        "facility_id"
+      ],
+      "foreign_keys": [
+        {
+          "column": "facility_id",
+          "references": "facilities.facility_id"
+        }
+      ],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "representative_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "role_title",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "tax_id",
+          "type": "text",
+          "nullable": true,
+          "comment": "CPF when provided; CNES often masks as literal CO_CPF (stored NULL)."
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "origin_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facilities": "facility_representatives.facility_id = facilities.facility_id"
+      },
+      "example_queries": [
+        "SELECT f.trade_name, fr.representative_name, fr.role_title, fr.email FROM mcp_test.facility_representatives fr JOIN mcp_test.facilities f ON fr.facility_id = f.facility_id WHERE f.deactivation_reason_code IS NULL AND fr.email IS NOT NULL LIMIT 10",
+        "SELECT representative_name, role_title, email FROM mcp_test.facility_search_view WHERE state_code = 'SP' AND representative_email IS NOT NULL LIMIT 10"
+      ]
+    },
+    "facility_services": {
+      "type": "table",
+      "description": "Services and specialties offered by facilities.",
+      "row_count": 1442080,
+      "primary_key": [
+        "facility_id",
+        "service_code",
+        "classification_code",
+        "characteristic_type",
+        "owner_tax_id",
+        "address_complement"
+      ],
+      "foreign_keys": [
+        {
+          "column": "service_code",
+          "references": "service_specialties.service_code"
+        },
+        {
+          "column": "classification_code",
+          "references": "service_classifications.classification_id"
+        },
+        {
+          "column": "service_code",
+          "references": "service_classifications.classification_id"
+        },
+        {
+          "column": "classification_code",
+          "references": "service_classifications.service_specialty_code"
+        },
+        {
+          "column": "service_code",
+          "references": "service_classifications.service_specialty_code"
+        },
+        {
+          "column": "facility_id",
+          "references": "facilities.facility_id"
+        }
+      ],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "service_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "classification_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "characteristic_type",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "owner_tax_id",
+          "type": "text",
+          "nullable": false,
+          "comment": "CNPJ/CPF of service provider at this facility (CO_CNPJCPF)"
+        },
+        {
+          "name": "address_complement",
+          "type": "text",
+          "nullable": false,
+          "comment": "Address complement distinguishing multiple service locations (CO_END_COMPL)"
+        },
+        {
+          "name": "ambulatory_capacity",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "ambulatory_capacity_sus",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "hospital_capacity",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "hospital_capacity_sus",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "is_active",
+          "type": "integer",
+          "nullable": true,
+          "comment": "1 = service currently active at this facility"
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facilities": "facility_services.facility_id = facilities.facility_id",
+        "service_specialties": "facility_services.service_code = service_specialties.service_code"
+      },
+      "common_filters": [
+        "is_active = 1"
+      ]
+    },
+    "facility_types": {
+      "type": "table",
+      "description": "Types of health facilities (hospital, clinic, pharmacy, etc.). Lookup for facilities.facility_type_code.",
+      "row_count": 27,
+      "primary_key": [
+        "facility_type_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "facility_type_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "facility_type_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ]
+    },
+    "installation_subtypes": {
+      "type": "table",
+      "description": "",
+      "row_count": 11,
+      "primary_key": [
+        "installation_subtype_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "installation_subtype_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "installation_subtype_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ]
+    },
+    "maintainers": {
+      "type": "table",
+      "description": "Facility maintainer organizations (mantenedora). Full record from tbMantenedora.",
+      "row_count": 9980,
+      "primary_key": [
+        "tax_id"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "tax_id",
+          "type": "text",
+          "nullable": false,
+          "comment": "CNPJ (NU_CNPJ_MANTENEDORA)"
+        },
+        {
+          "name": "legal_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "bank_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "branch_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "account_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "street_address",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "street_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "address_complement",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "neighborhood",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "postal_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "municipality_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "health_region_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "phone_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "form_filled_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "fms_fes_status",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "fms_fes_tax_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "legal_entity_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "manager_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "manager_municipality_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "origin_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facilities": "facilities.owner_tax_id = maintainers.tax_id"
+      }
+    },
+    "municipalities": {
+      "type": "table",
+      "description": "Brazilian municipalities (cities). ~5,600 rows. Join via municipality_id.",
+      "row_count": 5604,
+      "primary_key": [
+        "municipality_id"
+      ],
+      "foreign_keys": [
+        {
+          "column": "state_code",
+          "references": "states.state_code"
+        }
+      ],
+      "columns": [
+        {
+          "name": "municipality_id",
+          "type": "text",
+          "nullable": false,
+          "comment": "IBGE municipality code"
+        },
+        {
+          "name": "municipality_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "state_code",
+          "type": "text",
+          "nullable": false,
+          "comment": "FK to states.state_code"
+        },
+        {
+          "name": "registration_type",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "pact_type",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "data_submission_type",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "states": "municipalities.state_code = states.state_code"
+      },
+      "example_queries": [
+        "SELECT m.municipality_name, s.state_code FROM mcp_test.municipalities m JOIN mcp_test.states s ON m.state_code = s.state_code WHERE s.state_code = 'SP' LIMIT 10"
+      ]
+    },
+    "occupations": {
+      "type": "table",
+      "description": "CBO occupation/specialty lookup. From tbAtividadeProfissional.",
+      "row_count": 2739,
+      "primary_key": [
+        "occupation_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "occupation_code",
+          "type": "text",
+          "nullable": false,
+          "comment": "Brazilian CBO code (CO_CBO)"
+        },
+        {
+          "name": "occupation_name",
+          "type": "text",
+          "nullable": false,
+          "comment": "Occupation label (DS_ATIVIDADE_PROFISSIONAL)"
+        },
+        {
+          "name": "professional_classification",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "is_health_occupation",
+          "type": "text",
+          "nullable": true,
+          "comment": "S=health occupation, N=non-health (TP_CBO_SAUDE)"
+        },
+        {
+          "name": "is_regulated",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "reference_year",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facility_professionals": "facility_professionals.occupation_code = occupations.occupation_code",
+        "professional_workload": "professional_workload.occupation_code = occupations.occupation_code"
+      },
+      "example_queries": [
+        "SELECT occupation_code, occupation_name FROM mcp_test.occupations WHERE occupation_name ILIKE '%DERMAT%' LIMIT 10",
+        "SELECT p.full_name, o.occupation_name FROM mcp_test.facility_professionals fp JOIN mcp_test.professionals p ON fp.professional_id = p.professional_id JOIN mcp_test.occupations o ON fp.occupation_code = o.occupation_code WHERE o.occupation_code = '225135' AND fp.termination_date IS NULL LIMIT 10"
+      ]
+    },
+    "physical_installation_types": {
+      "type": "table",
+      "description": "",
+      "row_count": 4,
+      "primary_key": [
+        "installation_type_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "installation_type_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "installation_type_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ]
+    },
+    "physical_installations": {
+      "type": "table",
+      "description": "Physical installation catalog (consulting rooms, clinics). From tbInstalFisicaParaAssist.",
+      "row_count": 66,
+      "primary_key": [
+        "installation_code"
+      ],
+      "foreign_keys": [
+        {
+          "column": "installation_subtype_code",
+          "references": "installation_subtypes.installation_subtype_code"
+        },
+        {
+          "column": "installation_type_code",
+          "references": "physical_installation_types.installation_type_code"
+        }
+      ],
+      "columns": [
+        {
+          "name": "installation_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "installation_subtype_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "installation_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "installation_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facility_physical_installations": "facility_physical_installations.installation_code = physical_installations.installation_code"
+      }
+    },
+    "professional_councils": {
+      "type": "table",
+      "description": "Professional councils (CRM=Medical, CRO=Dental, CRF=Pharmacy, etc.).",
+      "row_count": 12,
+      "primary_key": [
+        "council_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "council_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "council_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ]
+    },
+    "professional_workload": {
+      "type": "table",
+      "description": "Working hours, credentials, and professional licenses.",
+      "row_count": 6653255,
+      "primary_key": [
+        "facility_id",
+        "professional_id",
+        "occupation_code",
+        "employment_type_code",
+        "service_type"
+      ],
+      "foreign_keys": [
+        {
+          "column": "occupation_code",
+          "references": "occupations.occupation_code"
+        },
+        {
+          "column": "facility_id",
+          "references": "facilities.facility_id"
+        },
+        {
+          "column": "professional_id",
+          "references": "professionals.professional_id"
+        }
+      ],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "professional_id",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "occupation_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "weekly_hours_ambulatory",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "service_type",
+          "type": "text",
+          "nullable": false,
+          "comment": "S=SUS, N=non-SUS. Part of composite PK — same professional can have separate SUS and non-SUS workloads."
+        },
+        {
+          "name": "employment_type_code",
+          "type": "text",
+          "nullable": false,
+          "comment": "Part of composite PK with facility, professional, occupation"
+        },
+        {
+          "name": "professional_council_code",
+          "type": "text",
+          "nullable": true,
+          "comment": "CNES council code (generic 01-12 or regional CRM 60-83). Not FK-constrained — tbConselhoClasse only lists 12 generic types."
+        },
+        {
+          "name": "license_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "license_state",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "is_preceptor",
+          "type": "integer",
+          "nullable": true,
+          "comment": "1 = teaches/supervises residents"
+        },
+        {
+          "name": "is_resident",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "joins": {
+        "facilities": "professional_workload.facility_id = facilities.facility_id",
+        "professionals": "professional_workload.professional_id = professionals.professional_id",
+        "occupations": "professional_workload.occupation_code = occupations.occupation_code"
+      },
+      "example_queries": [
+        "SELECT pw.facility_id, pw.professional_id, pw.occupation_code, pw.service_type, pw.weekly_hours_ambulatory FROM mcp_test.professional_workload pw WHERE pw.facility_id = '...' LIMIT 10"
+      ]
+    },
+    "professionals": {
+      "type": "table",
+      "description": "Healthcare professionals (doctors, nurses, etc.). ~7.5M rows.",
+      "row_count": 7761552,
+      "primary_key": [
+        "professional_id"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "professional_id",
+          "type": "text",
+          "nullable": false,
+          "comment": "Unique professional identifier (CO_PROFISSIONAL_SUS)"
+        },
+        {
+          "name": "full_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "social_name",
+          "type": "text",
+          "nullable": true,
+          "comment": "Preferred/social name if different from legal name"
+        },
+        {
+          "name": "tax_id",
+          "type": "text",
+          "nullable": true,
+          "comment": "CPF (partially masked for privacy)"
+        },
+        {
+          "name": "health_card_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "nationality_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "example_queries": [
+        "SELECT professional_id, full_name FROM mcp_test.professionals WHERE full_name ILIKE '%SILVA%' LIMIT 10"
+      ]
+    },
+    "service_classifications": {
+      "type": "table",
+      "description": "Detailed service classification hierarchy linked to service_specialties.",
+      "row_count": 459,
+      "primary_key": [
+        "classification_id",
+        "service_specialty_code"
+      ],
+      "foreign_keys": [
+        {
+          "column": "service_specialty_code",
+          "references": "service_specialties.service_code"
+        }
+      ],
+      "columns": [
+        {
+          "name": "classification_id",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "service_specialty_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "classification_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ]
+    },
+    "service_specialties": {
+      "type": "table",
+      "description": "Medical service specialties. Lookup for facility_services.service_code.",
+      "row_count": 73,
+      "primary_key": [
+        "service_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "service_code",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "service_name",
+          "type": "text",
+          "nullable": false,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ]
+    },
+    "states": {
+      "type": "table",
+      "description": "Brazilian states (UF). Reference table, ~27 rows.",
+      "row_count": 27,
+      "primary_key": [
+        "state_code"
+      ],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "state_code",
+          "type": "text",
+          "nullable": false,
+          "comment": "State abbreviation (SP, RJ, MG, etc.)"
+        },
+        {
+          "name": "state_name",
+          "type": "text",
+          "nullable": false,
+          "comment": "Full state name"
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "common_filters": [],
+      "example_queries": [
+        "SELECT state_code, state_name FROM mcp_test.states ORDER BY state_name"
+      ]
+    }
+  },
+  "views": {
+    "active_facilities": {
+      "type": "view",
+      "description": "Active facilities only (deactivation_reason_code IS NULL) with location and type.",
+      "row_count": -1,
+      "primary_key": [],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "cnes_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "legal_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "trade_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "street_address",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "street_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "address_complement",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "neighborhood",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "postal_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "municipality_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "health_region_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "phone_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "fax_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "website_url",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "latitude",
+          "type": "double precision",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "longitude",
+          "type": "double precision",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "tax_id_cnpj",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "tax_id_cpf",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "owner_tax_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "legal_entity_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "entity_type",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "facility_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "primary_activity_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "unit_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "operating_hours_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "deactivation_reason_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "is_24_7",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "is_philanthropic",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "has_internet",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "has_formal_contract",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "license_issue_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "sanitary_license_expiry",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "unit_type_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "unit_subtype_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "municipality_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "state_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "state_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "facility_type_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "use_when": "Simple active facility list without aggregations"
+    },
+    "active_facility_professionals": {
+      "type": "view",
+      "description": "Currently employed professionals at active facilities.",
+      "row_count": -1,
+      "primary_key": [],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "professional_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "occupation_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "municipality_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "service_area_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "team_sequence_number",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "service_type",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "employment_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "start_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "termination_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "micro_area_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "other_team_cnes",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "facility_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "professional_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "occupation_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "professional_council_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "license_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "use_when": "Current employment relationships"
+    },
+    "facility_equipment_in_use": {
+      "type": "view",
+      "description": "Equipment currently in use at active facilities (operational_status=E, quantity>0).",
+      "row_count": -1,
+      "primary_key": [],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "equipment_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "equipment_category_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "operational_status",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_updated_date",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_by_user",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "updated_at",
+          "type": "timestamp without time zone",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "facility_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "municipality_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "equipment_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "equipment_category",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "use_when": "Equipment-based sales targeting"
+    },
+    "facility_search_view": {
+      "type": "view",
+      "description": "Pre-aggregated facility search with staff, services, equipment counts. Prefer for sales discovery.",
+      "row_count": -1,
+      "primary_key": [],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "facility_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "cnes_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "legal_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "trade_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "full_address",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "neighborhood",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "postal_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "municipality_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "state_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "state_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "phone_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "website_url",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "representative_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "representative_role",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "representative_email",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "latitude",
+          "type": "double precision",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "longitude",
+          "type": "double precision",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "facility_type",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "facility_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "unit_type_code",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "unit_type_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "unit_subtype_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "maintainer_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "maintainer_tax_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "is_24_7",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "is_philanthropic",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "has_internet",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "deactivation_reason",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "active_professionals_count",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "occupation_types_count",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "active_services_count",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "specialties",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "agreement_types",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "physical_installation_types_count",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "physical_installations",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "equipment_types_count",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "total_equipment_count",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "equipment_categories",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "total_ambulatory_capacity",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "total_hospital_capacity",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_professional_update",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_equipment_update",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "facility_last_update",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "example_queries": [
+        "SELECT trade_name, state_code, active_professionals_count FROM mcp_test.facility_search_view WHERE status = 'ACTIVE' AND state_code = 'SP' ORDER BY active_professionals_count DESC LIMIT 20"
+      ],
+      "use_when": "Discovery queries by state, equipment, staff size"
+    },
+    "professional_search_view": {
+      "type": "view",
+      "description": "Pre-aggregated professional search: employment, licenses, locations. Prefer for discovery queries.",
+      "row_count": -1,
+      "primary_key": [],
+      "foreign_keys": [],
+      "columns": [
+        {
+          "name": "professional_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "full_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "social_name",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "tax_id",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "health_card_number",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "active_facilities_count",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "current_facilities",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "current_locations",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "licenses",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "councils",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "occupation_codes",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "occupation_names",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "active_positions",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "total_weekly_hours",
+          "type": "bigint",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "is_preceptor",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "is_resident",
+          "type": "integer",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_employment_update",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        },
+        {
+          "name": "last_workload_update",
+          "type": "text",
+          "nullable": true,
+          "comment": ""
+        }
+      ],
+      "use_when": "Finding professionals by location or specialty (use occupation_names or join occupations)"
+    }
+  }
+}

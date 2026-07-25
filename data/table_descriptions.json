@@ -1,0 +1,1097 @@
+{
+  "generated_date": "2026-06-18T09:10:18.345770",
+  "total_tables": 109,
+  "source": "CNES Database - May 2026",
+  "descriptions": {
+    "rlAdmGerenciaCnes202605.csv": {
+      "table_name": "rlAdmGerenciaCnes202605.csv",
+      "subject": "AdmGerenciaCnes",
+      "type": "relationship",
+      "row_count": 5523,
+      "column_count": 7,
+      "has_primary_key": false,
+      "foreign_key_count": 50,
+      "description": "Relationship table managing associations in the CNES database related to AdmGerenciaCnes. Contains 5,523 records. Each record is No primary key detected. This table has relationships with 21 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabEquipamento, and others."
+    },
+    "rlAtividadeObrigatoria202605.csv": {
+      "table_name": "rlAtividadeObrigatoria202605.csv",
+      "subject": "AtividadeObrigatoria",
+      "type": "relationship",
+      "row_count": 14,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 5,
+      "description": "Defines which activities are mandatory for specific types of health establishments. Ensures establishments register required services based on their classification. This is a small reference table with 14 records. Each record is uniquely identified by the combination of CO_TIPO_ESTABELECIMENTO, CO_ATIVIDADE_OBRIGATORIA. This table has relationships with 4 other tables including TipoEstabAtividade, Estabelecimento, TipoEstabelecimento, and others."
+    },
+    "rlCooperativa202605.csv": {
+      "table_name": "rlCooperativa202605.csv",
+      "subject": "Cooperativa",
+      "type": "relationship",
+      "row_count": 2263,
+      "column_count": 6,
+      "has_primary_key": true,
+      "foreign_key_count": 56,
+      "description": "Relationship table managing associations in the CNES database related to Cooperativa. Contains 2,263 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_COOPERATIVA, CO_CBO. This table has relationships with 27 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabEquipamento, and others."
+    },
+    "rlEquipeAldeia202605.csv": {
+      "table_name": "rlEquipeAldeia202605.csv",
+      "subject": "EquipeAldeia",
+      "type": "relationship",
+      "row_count": 348,
+      "column_count": 8,
+      "has_primary_key": true,
+      "foreign_key_count": 85,
+      "description": "Relationship table managing associations in the CNES database related to EquipeAldeia. This is a small reference table with 348 records. Each record is uniquely identified by the combination of CO_AREA, CO_ALDEIA, CO_UNIDADE. This table has relationships with 40 other tables including EquipeNasfEsf, EstabEquipeProf, Aldeia, and others."
+    },
+    "rlEquipeNasfEsf202605.csv": {
+      "table_name": "rlEquipeNasfEsf202605.csv",
+      "subject": "EquipeNasfEsf",
+      "type": "relationship",
+      "row_count": 91154,
+      "column_count": 17,
+      "has_primary_key": true,
+      "foreign_key_count": 102,
+      "description": "Relationship table managing associations in the CNES database related to EquipeNasfEsf. Contains 91,154 records. Each record is uniquely identified by the combination of NU_SEQUENCIAL, CO_UNIDADE. This table has relationships with 35 other tables including EquipeNasfEsf, EstabEquipeProf, Area, and others."
+    },
+    "rlEstabAtenPsico202605.csv": {
+      "table_name": "rlEstabAtenPsico202605.csv",
+      "subject": "EstabAtenPsico",
+      "type": "relationship",
+      "row_count": 1425,
+      "column_count": 14,
+      "has_primary_key": true,
+      "foreign_key_count": 92,
+      "description": "Relationship table managing associations in the CNES database related to EstabAtenPsico. Contains 1,425 records. Each record is uniquely identified by CO_UNIDADE. This table has relationships with 33 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlEstabAtendPrestConv202605.csv": {
+      "table_name": "rlEstabAtendPrestConv202605.csv",
+      "subject": "EstabAtendPrestConv",
+      "type": "relationship",
+      "row_count": 1091997,
+      "column_count": 6,
+      "has_primary_key": true,
+      "foreign_key_count": 40,
+      "description": "Relationship table managing associations in the CNES database related to EstabAtendPrestConv. This is a large table with 1,091,997 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_ATENDIMENTO_PRESTADO, CO_CONVENIO. This table has relationships with 20 other tables including EstabColetaSelRejeito, EstabInstFisiAssist, EstabProgFundo, and others."
+    },
+    "rlEstabAvaliacao202605.csv": {
+      "table_name": "rlEstabAvaliacao202605.csv",
+      "subject": "EstabAvaliacao",
+      "type": "relationship",
+      "row_count": 1686,
+      "column_count": 8,
+      "has_primary_key": false,
+      "foreign_key_count": 56,
+      "description": "Relationship table managing associations in the CNES database related to EstabAvaliacao. Contains 1,686 records. Each record is No primary key detected. This table has relationships with 28 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlEstabCentralReg202605.csv": {
+      "table_name": "rlEstabCentralReg202605.csv",
+      "subject": "EstabCentralReg",
+      "type": "relationship",
+      "row_count": 3365,
+      "column_count": 22,
+      "has_primary_key": true,
+      "foreign_key_count": 74,
+      "description": "Relationship table managing associations in the CNES database related to EstabCentralReg. Contains 3,365 records. Each record is uniquely identified by the combination of CO_SEQ_CENTRAL, NU_FAX. This table has relationships with 31 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabProgFundo, and others."
+    },
+    "rlEstabColetaSelRejeito202605.csv": {
+      "table_name": "rlEstabColetaSelRejeito202605.csv",
+      "subject": "EstabColetaSelRejeito",
+      "type": "relationship",
+      "row_count": 934217,
+      "column_count": 5,
+      "has_primary_key": true,
+      "foreign_key_count": 36,
+      "description": "Relationship table managing associations in the CNES database related to EstabColetaSelRejeito. Contains 934,217 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_COLETA_REJEITO. This table has relationships with 20 other tables including EstabAtendPrestConv, EstabInstFisiAssist, EstabProgFundo, and others."
+    },
+    "rlEstabComissaoOutro202605.csv": {
+      "table_name": "rlEstabComissaoOutro202605.csv",
+      "subject": "EstabComissaoOutro",
+      "type": "relationship",
+      "row_count": 98345,
+      "column_count": 7,
+      "has_primary_key": true,
+      "foreign_key_count": 43,
+      "description": "Relationship table managing associations in the CNES database related to EstabComissaoOutro. Contains 98,345 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_COMISSAO. This table has relationships with 27 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabEquipamento, and others."
+    },
+    "rlEstabComplementar202605.csv": {
+      "table_name": "rlEstabComplementar202605.csv",
+      "subject": "EstabComplementar",
+      "type": "relationship",
+      "row_count": 60897,
+      "column_count": 10,
+      "has_primary_key": true,
+      "foreign_key_count": 61,
+      "description": "Relationship table managing associations in the CNES database related to EstabComplementar. Contains 60,897 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_LEITO. This table has relationships with 30 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabComissaoOutro, and others."
+    },
+    "rlEstabEndCompl202605.csv": {
+      "table_name": "rlEstabEndCompl202605.csv",
+      "subject": "EstabEndCompl",
+      "type": "relationship",
+      "row_count": 7436,
+      "column_count": 20,
+      "has_primary_key": true,
+      "foreign_key_count": 75,
+      "description": "Relationship table managing associations in the CNES database related to EstabEndCompl. Contains 7,436 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_END_COMPL, NU_ENDERECO. This table has relationships with 31 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlEstabEqpEmbarcacao202605.csv": {
+      "table_name": "rlEstabEqpEmbarcacao202605.csv",
+      "subject": "EstabEqpEmbarcacao",
+      "type": "relationship",
+      "row_count": 2106,
+      "column_count": 11,
+      "has_primary_key": true,
+      "foreign_key_count": 81,
+      "description": "Relationship table managing associations in the CNES database related to EstabEqpEmbarcacao. Contains 2,106 records. Each record is uniquely identified by the combination of CO_MUNICIPIO, NU_EMBARCACAO, DS_COMUNIDADE_ATENDIDA. This table has relationships with 39 other tables including EquipeNasfEsf, EstabEquipeProf, Area, and others."
+    },
+    "rlEstabEqpUnidApoio202605.csv": {
+      "table_name": "rlEstabEqpUnidApoio202605.csv",
+      "subject": "EstabEqpUnidApoio",
+      "type": "relationship",
+      "row_count": 1521,
+      "column_count": 8,
+      "has_primary_key": true,
+      "foreign_key_count": 105,
+      "description": "Relationship table managing associations in the CNES database related to EstabEqpUnidApoio. Contains 1,521 records. Each record is uniquely identified by the combination of CO_ENDERECO_COMPLEMENTAR, CO_UNIDADE. This table has relationships with 39 other tables including EquipeNasfEsf, EstabEndCompl, EstabEqpEmbarcacao, and others."
+    },
+    "rlEstabEquipamento202605.csv": {
+      "table_name": "rlEstabEquipamento202605.csv",
+      "subject": "EstabEquipamento",
+      "type": "relationship",
+      "row_count": 1348380,
+      "column_count": 10,
+      "has_primary_key": true,
+      "foreign_key_count": 55,
+      "description": "Links health establishments to their medical equipment. Records which equipment is available at each facility and its operational status (in use, inactive, etc.). This is a large table with 1,348,380 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_EQUIPAMENTO, CO_TIPO_EQUIPAMENTO. This table has relationships with 25 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlEstabEquipeMun202605.csv": {
+      "table_name": "rlEstabEquipeMun202605.csv",
+      "subject": "EstabEquipeMun",
+      "type": "relationship",
+      "row_count": 0,
+      "column_count": 7,
+      "has_primary_key": false,
+      "foreign_key_count": 0,
+      "description": "Junction/relationship table that links establishments and teams and municipalities. Enables tracking of associations between these entities in the healthcare system. This is a small reference table with 0 records. Each record is No primary key detected. No foreign key relationships detected."
+    },
+    "rlEstabEquipeProf202605.csv": {
+      "table_name": "rlEstabEquipeProf202605.csv",
+      "subject": "EstabEquipeProf",
+      "type": "relationship",
+      "row_count": 870453,
+      "column_count": 21,
+      "has_primary_key": true,
+      "foreign_key_count": 106,
+      "description": "Junction table linking health establishments, teams, and professionals. Maps which professionals work in which teams at which facilities, including their occupation code (CBO) and whether they serve SUS or private patients. Contains 870,453 records. Each record is uniquely identified by CO_CBO_CH_COMPL. This table has relationships with 34 other tables including EquipeNasfEsf, Area, Equipe, and others."
+    },
+    "rlEstabInstFisiAssist202605.csv": {
+      "table_name": "rlEstabInstFisiAssist202605.csv",
+      "subject": "EstabInstFisiAssist",
+      "type": "relationship",
+      "row_count": 1119338,
+      "column_count": 7,
+      "has_primary_key": true,
+      "foreign_key_count": 40,
+      "description": "Relationship table managing associations in the CNES database related to EstabInstFisiAssist. This is a large table with 1,119,338 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_INSTALACAO, NU_LEITOS. This table has relationships with 23 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabProgFundo, and others."
+    },
+    "rlEstabOrgParc202605.csv": {
+      "table_name": "rlEstabOrgParc202605.csv",
+      "subject": "EstabOrgParc",
+      "type": "relationship",
+      "row_count": 0,
+      "column_count": 21,
+      "has_primary_key": false,
+      "foreign_key_count": 0,
+      "description": "Relationship table managing associations in the CNES database related to EstabOrgParc. This is a small reference table with 0 records. Each record is No primary key detected. No foreign key relationships detected."
+    },
+    "rlEstabPoloAldeia202605.csv": {
+      "table_name": "rlEstabPoloAldeia202605.csv",
+      "subject": "EstabPoloAldeia",
+      "type": "relationship",
+      "row_count": 1697,
+      "column_count": 7,
+      "has_primary_key": true,
+      "foreign_key_count": 54,
+      "description": "Relationship table managing associations in the CNES database related to EstabPoloAldeia. Contains 1,697 records. Each record is uniquely identified by CO_UNIDADE. This table has relationships with 28 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlEstabProfComissao202605.csv": {
+      "table_name": "rlEstabProfComissao202605.csv",
+      "subject": "EstabProfComissao",
+      "type": "relationship",
+      "row_count": 64958,
+      "column_count": 10,
+      "has_primary_key": true,
+      "foreign_key_count": 76,
+      "description": "Junction/relationship table that links establishments and professionals. Enables tracking of associations between these entities in the healthcare system. Contains 64,958 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_COMISSAO, CO_PROFISSIONAL_SUS. This table has relationships with 38 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabComissaoOutro, and others."
+    },
+    "rlEstabProgFundo202605.csv": {
+      "table_name": "rlEstabProgFundo202605.csv",
+      "subject": "EstabProgFundo",
+      "type": "relationship",
+      "row_count": 693736,
+      "column_count": 6,
+      "has_primary_key": false,
+      "foreign_key_count": 42,
+      "description": "Relationship table managing associations in the CNES database related to EstabProgFundo. Contains 693,736 records. Each record is No primary key detected. This table has relationships with 21 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlEstabRegimeRes202605.csv": {
+      "table_name": "rlEstabRegimeRes202605.csv",
+      "subject": "EstabRegimeRes",
+      "type": "relationship",
+      "row_count": 104,
+      "column_count": 21,
+      "has_primary_key": true,
+      "foreign_key_count": 100,
+      "description": "Relationship table managing associations in the CNES database related to EstabRegimeRes. This is a small reference table with 104 records. Each record is uniquely identified by CO_UNIDADE. This table has relationships with 31 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabProgFundo, and others."
+    },
+    "rlEstabRepresentante202605.csv": {
+      "table_name": "rlEstabRepresentante202605.csv",
+      "subject": "EstabRepresentante",
+      "type": "relationship",
+      "row_count": 2704,
+      "column_count": 8,
+      "has_primary_key": true,
+      "foreign_key_count": 54,
+      "description": "Relationship table managing associations in the CNES database related to EstabRepresentante. Contains 2,704 records. Each record is uniquely identified by CO_UNIDADE. This table has relationships with 26 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlEstabSamu202605.csv": {
+      "table_name": "rlEstabSamu202605.csv",
+      "subject": "EstabSamu",
+      "type": "relationship",
+      "row_count": 19643,
+      "column_count": 13,
+      "has_primary_key": true,
+      "foreign_key_count": 63,
+      "description": "Relationship table managing associations in the CNES database related to EstabSamu. Contains 19,643 records. Each record is uniquely identified by the combination of CO_UNIDADE, NU_EMBARCA_MARINHA. This table has relationships with 31 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabProgFundo, and others."
+    },
+    "rlEstabSerieEquipamen202605.csv": {
+      "table_name": "rlEstabSerieEquipamen202605.csv",
+      "subject": "EstabSerieEquipamen",
+      "type": "relationship",
+      "row_count": 117,
+      "column_count": 9,
+      "has_primary_key": true,
+      "foreign_key_count": 80,
+      "description": "Relationship table managing associations in the CNES database related to EstabSerieEquipamen. This is a small reference table with 117 records. Each record is uniquely identified by the combination of CO_UNIDADE, DS_SERIE. This table has relationships with 41 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabComissaoOutro, and others."
+    },
+    "rlEstabServClass202605.csv": {
+      "table_name": "rlEstabServClass202605.csv",
+      "subject": "EstabServClass",
+      "type": "relationship",
+      "row_count": 1442080,
+      "column_count": 13,
+      "has_primary_key": false,
+      "foreign_key_count": 63,
+      "description": "Maps health establishments to the classification of services they provide. Links facilities to their service offerings and specializations. This is a large table with 1,442,080 records. Each record is No primary key detected. This table has relationships with 28 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlEstabServicoApoio202605.csv": {
+      "table_name": "rlEstabServicoApoio202605.csv",
+      "subject": "EstabServicoApoio",
+      "type": "relationship",
+      "row_count": 574680,
+      "column_count": 6,
+      "has_primary_key": true,
+      "foreign_key_count": 48,
+      "description": "Junction/relationship table that links establishments and services. Enables tracking of associations between these entities in the healthcare system. Contains 574,680 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_SERVICO_APOIO, CO_CARACTERISTICA. This table has relationships with 21 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlEstabSipac202605.csv": {
+      "table_name": "rlEstabSipac202605.csv",
+      "subject": "EstabSipac",
+      "type": "relationship",
+      "row_count": 117517,
+      "column_count": 9,
+      "has_primary_key": false,
+      "foreign_key_count": 26,
+      "description": "Relationship table managing associations in the CNES database related to EstabSipac. Contains 117,517 records. Each record is No primary key detected. This table has relationships with 17 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabEquipamento, and others."
+    },
+    "rlEstabSubTipo202605.csv": {
+      "table_name": "rlEstabSubTipo202605.csv",
+      "subject": "EstabSubTipo",
+      "type": "relationship",
+      "row_count": 132214,
+      "column_count": 6,
+      "has_primary_key": true,
+      "foreign_key_count": 53,
+      "description": "Relationship table managing associations in the CNES database related to EstabSubTipo. Contains 132,214 records. Each record is uniquely identified by CO_UNIDADE. This table has relationships with 23 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlEstabTeleCnes202605.csv": {
+      "table_name": "rlEstabTeleCnes202605.csv",
+      "subject": "EstabTeleCnes",
+      "type": "relationship",
+      "row_count": 0,
+      "column_count": 7,
+      "has_primary_key": false,
+      "foreign_key_count": 0,
+      "description": "Relationship table managing associations in the CNES database related to EstabTeleCnes. This is a small reference table with 0 records. Each record is No primary key detected. No foreign key relationships detected."
+    },
+    "rlEstabUnidAcolhim202605.csv": {
+      "table_name": "rlEstabUnidAcolhim202605.csv",
+      "subject": "EstabUnidAcolhim",
+      "type": "relationship",
+      "row_count": 214,
+      "column_count": 28,
+      "has_primary_key": true,
+      "foreign_key_count": 118,
+      "description": "Relationship table managing associations in the CNES database related to EstabUnidAcolhim. This is a small reference table with 214 records. Each record is uniquely identified by NU_ACOLHIMENTO. This table has relationships with 39 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlMunAtenPsico202605.csv": {
+      "table_name": "rlMunAtenPsico202605.csv",
+      "subject": "MunAtenPsico",
+      "type": "relationship",
+      "row_count": 1031,
+      "column_count": 5,
+      "has_primary_key": true,
+      "foreign_key_count": 71,
+      "description": "Relationship table managing associations in the CNES database related to MunAtenPsico. Contains 1,031 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_MUNICIPIO. This table has relationships with 30 other tables including EstabAtenPsico, EstabAtendPrestConv, EstabColetaSelRejeito, and others."
+    },
+    "rlMunRegimeRes202605.csv": {
+      "table_name": "rlMunRegimeRes202605.csv",
+      "subject": "MunRegimeRes",
+      "type": "relationship",
+      "row_count": 97,
+      "column_count": 5,
+      "has_primary_key": true,
+      "foreign_key_count": 78,
+      "description": "Relationship table managing associations in the CNES database related to MunRegimeRes. This is a small reference table with 97 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_MUNICIPIO. This table has relationships with 35 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlMunUnidAcolhim202605.csv": {
+      "table_name": "rlMunUnidAcolhim202605.csv",
+      "subject": "MunUnidAcolhim",
+      "type": "relationship",
+      "row_count": 168,
+      "column_count": 6,
+      "has_primary_key": false,
+      "foreign_key_count": 74,
+      "description": "Relationship table managing associations in the CNES database related to MunUnidAcolhim. This is a small reference table with 168 records. Each record is No primary key detected. This table has relationships with 34 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "rlNasfEsf202605.csv": {
+      "table_name": "rlNasfEsf202605.csv",
+      "subject": "NasfEsf",
+      "type": "relationship",
+      "row_count": 11,
+      "column_count": 8,
+      "has_primary_key": true,
+      "foreign_key_count": 91,
+      "description": "Relationship table managing associations in the CNES database related to NasfEsf. This is a small reference table with 11 records. Each record is uniquely identified by CO_UNIDADE. This table has relationships with 40 other tables including EquipeNasfEsf, EstabCentralReg, EstabEndCompl, and others."
+    },
+    "rlTipoEstabAtividade202605.csv": {
+      "table_name": "rlTipoEstabAtividade202605.csv",
+      "subject": "TipoEstabAtividade",
+      "type": "relationship",
+      "row_count": 29,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 5,
+      "description": "Relationship table managing associations in the CNES database related to TipoEstabAtividade. This is a small reference table with 29 records. Each record is uniquely identified by CO_ATIVIDADE. This table has relationships with 4 other tables including Estabelecimento, TipoEstabelecimento, Atividade, and others."
+    },
+    "tbAldeia202605.csv": {
+      "table_name": "tbAldeia202605.csv",
+      "subject": "Aldeia",
+      "type": "main",
+      "row_count": 8601,
+      "column_count": 20,
+      "has_primary_key": true,
+      "foreign_key_count": 14,
+      "description": "Main data table storing information about Aldeia in the Brazilian healthcare system (CNES). Contains 8,601 records. Each record is uniquely identified by CO_SEQ_ALDEIA. This table has relationships with 12 other tables including PoloBase, EquipeNasfEsf, EstabEquipeProf, and others."
+    },
+    "tbArea202605.csv": {
+      "table_name": "tbArea202605.csv",
+      "subject": "Area",
+      "type": "main",
+      "row_count": 70063,
+      "column_count": 7,
+      "has_primary_key": true,
+      "foreign_key_count": 45,
+      "description": "Main data table storing information about Area in the Brazilian healthcare system (CNES). Contains 70,063 records. Each record is uniquely identified by the combination of CO_MUNICIPIO, CO_AREA. This table has relationships with 22 other tables including EquipeNasfEsf, EstabEquipeProf, Equipe, and others."
+    },
+    "tbAtendimentoPrestado202605.csv": {
+      "table_name": "tbAtendimentoPrestado202605.csv",
+      "subject": "AtendimentoPrestado",
+      "type": "main",
+      "row_count": 7,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Main data table storing information about AtendimentoPrestado in the Brazilian healthcare system (CNES). This is a small reference table with 7 records. Each record is uniquely identified by CO_ATENDIMENTO_PRESTADO. This table references EstabAtendPrestConv."
+    },
+    "tbAtividade202605.csv": {
+      "table_name": "tbAtividade202605.csv",
+      "subject": "Atividade",
+      "type": "main",
+      "row_count": 29,
+      "column_count": 4,
+      "has_primary_key": true,
+      "foreign_key_count": 7,
+      "description": "Reference table of healthcare activities. Defines all types of activities/services that health establishments can perform (e.g., consultations, procedures, diagnostics). This is a small reference table with 29 records. Each record is uniquely identified by CO_ATIVIDADE. This table has relationships with 6 other tables including EstabProgFundo, AtividadeEnsino, Estabelecimento, and others."
+    },
+    "tbAtividadeEnsino202605.csv": {
+      "table_name": "tbAtividadeEnsino202605.csv",
+      "subject": "AtividadeEnsino",
+      "type": "main",
+      "row_count": 5,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 4,
+      "description": "Main data table storing information about AtividadeEnsino in the Brazilian healthcare system (CNES). This is a small reference table with 5 records. Each record is uniquely identified by CO_ATIVIDADE. This table has relationships with 4 other tables including EstabProgFundo, Atividade, Estabelecimento, and others."
+    },
+    "tbAtividadeProfissional202605.csv": {
+      "table_name": "tbAtividadeProfissional202605.csv",
+      "subject": "AtividadeProfissional",
+      "type": "main",
+      "row_count": 2738,
+      "column_count": 6,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about AtividadeProfissional in the Brazilian healthcare system (CNES). Contains 2,738 records. Each record is uniquely identified by CO_CBO. No foreign key relationships detected."
+    },
+    "tbAtributo202605.csv": {
+      "table_name": "tbAtributo202605.csv",
+      "subject": "Atributo",
+      "type": "main",
+      "row_count": 24,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about Atributo in the Brazilian healthcare system (CNES). This is a small reference table with 24 records. Each record is uniquely identified by the combination of CO_INDICADOR, CO_ATRIBUTO. No foreign key relationships detected."
+    },
+    "tbAvaliacao202605.csv": {
+      "table_name": "tbAvaliacao202605.csv",
+      "subject": "Avaliacao",
+      "type": "main",
+      "row_count": 8,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 2,
+      "description": "Contains evaluation or assessment data, including quality certifications, accreditations, or performance evaluations of health establishments. This is a small reference table with 8 records. Each record is uniquely identified by CO_AVALIACAO. This table references: EstabAvaliacao, ClassificacaoAval."
+    },
+    "tbBanco202605.csv": {
+      "table_name": "tbBanco202605.csv",
+      "subject": "Banco",
+      "type": "main",
+      "row_count": 0,
+      "column_count": 2,
+      "has_primary_key": false,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about Banco in the Brazilian healthcare system (CNES). This is a small reference table with 0 records. Each record is No primary key detected. No foreign key relationships detected."
+    },
+    "tbCargaHorariaSus202605.csv": {
+      "table_name": "tbCargaHorariaSus202605.csv",
+      "subject": "CargaHorariaSus",
+      "type": "main",
+      "row_count": 6653255,
+      "column_count": 18,
+      "has_primary_key": false,
+      "foreign_key_count": 40,
+      "description": "Records the working hours (carga horária) of healthcare professionals in SUS facilities. Tracks how many hours each professional dedicates to public health services. This is a large table with 6,653,255 records. Each record is No primary key detected. This table has relationships with 21 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabEquipamento, and others."
+    },
+    "tbClassificacaoAval202605.csv": {
+      "table_name": "tbClassificacaoAval202605.csv",
+      "subject": "ClassificacaoAval",
+      "type": "main",
+      "row_count": 14,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 3,
+      "description": "Contains evaluation or assessment data, including quality certifications, accreditations, or performance evaluations of health establishments. This is a small reference table with 14 records. Each record is uniquely identified by the combination of CO_AVALIACAO, CO_CLASSIFICACAO. This table references: EstabAvaliacao, Avaliacao."
+    },
+    "tbClassificacaoServico202605.csv": {
+      "table_name": "tbClassificacaoServico202605.csv",
+      "subject": "ClassificacaoServico",
+      "type": "main",
+      "row_count": 459,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 3,
+      "description": "Main data table storing information about ClassificacaoServico in the Brazilian healthcare system (CNES). This is a small reference table with 459 records. Each record is uniquely identified by the combination of CO_CLASSIFICACAO_SERVICO, CO_SERVICO_ESPECIALIZADO. This table references: EstabServClass, ServicoEspecializado."
+    },
+    "tbColetaSeletivaRejeito202605.csv": {
+      "table_name": "tbColetaSeletivaRejeito202605.csv",
+      "subject": "ColetaSeletivaRejeito",
+      "type": "main",
+      "row_count": 5,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Main data table storing information about ColetaSeletivaRejeito in the Brazilian healthcare system (CNES). This is a small reference table with 5 records. Each record is uniquely identified by CO_COLETA_REJEITO. This table references EstabColetaSelRejeito."
+    },
+    "tbComissaoOutro202605.csv": {
+      "table_name": "tbComissaoOutro202605.csv",
+      "subject": "ComissaoOutro",
+      "type": "main",
+      "row_count": 19,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 2,
+      "description": "Main data table storing information about ComissaoOutro in the Brazilian healthcare system (CNES). This is a small reference table with 19 records. Each record is uniquely identified by CO_COMISSAO. This table references: EstabComissaoOutro, EstabProfComissao."
+    },
+    "tbConselhoClasse202605.csv": {
+      "table_name": "tbConselhoClasse202605.csv",
+      "subject": "ConselhoClasse",
+      "type": "main",
+      "row_count": 12,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about ConselhoClasse in the Brazilian healthcare system (CNES). This is a small reference table with 12 records. Each record is uniquely identified by CO_CONSELHO_CLASSE. No foreign key relationships detected."
+    },
+    "tbConvenio202605.csv": {
+      "table_name": "tbConvenio202605.csv",
+      "subject": "Convenio",
+      "type": "main",
+      "row_count": 7,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Information about health insurance agreements (convênios) and partnerships between facilities and insurance providers or healthcare plans. This is a small reference table with 7 records. Each record is uniquely identified by CO_CONVENIO. This table references EstabAtendPrestConv."
+    },
+    "tbDadosProfissionalSus202605.csv": {
+      "table_name": "tbDadosProfissionalSus202605.csv",
+      "subject": "DadosProfissionalSus",
+      "type": "main",
+      "row_count": 7761583,
+      "column_count": 11,
+      "has_primary_key": true,
+      "foreign_key_count": 29,
+      "description": "Master table of healthcare professionals registered in the system. Contains personal information including CPF, CNS (National Health Card), names, and professional identifiers used across the entire CNES database. This is a large table with 7,761,583 records. Each record is uniquely identified by CO_PROFISSIONAL_SUS. This table has relationships with 16 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabComissaoOutro, and others."
+    },
+    "tbDialise202605.csv": {
+      "table_name": "tbDialise202605.csv",
+      "subject": "Dialise",
+      "type": "main",
+      "row_count": 162,
+      "column_count": 23,
+      "has_primary_key": true,
+      "foreign_key_count": 44,
+      "description": "Main data table storing information about Dialise in the Brazilian healthcare system (CNES). This is a small reference table with 162 records. Each record is uniquely identified by CO_UNIDADE. This table has relationships with 21 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabEquipamento, and others."
+    },
+    "tbDsei202605.csv": {
+      "table_name": "tbDsei202605.csv",
+      "subject": "Dsei",
+      "type": "main",
+      "row_count": 35,
+      "column_count": 26,
+      "has_primary_key": true,
+      "foreign_key_count": 26,
+      "description": "Main data table storing information about Dsei in the Brazilian healthcare system (CNES). This is a small reference table with 35 records. Each record is uniquely identified by CO_SEQ_DSEI. This table has relationships with 14 other tables including EstabPoloAldeia, PoloBase, Aldeia, and others."
+    },
+    "tbEquipamento202605.csv": {
+      "table_name": "tbEquipamento202605.csv",
+      "subject": "Equipamento",
+      "type": "main",
+      "row_count": 144,
+      "column_count": 4,
+      "has_primary_key": true,
+      "foreign_key_count": 3,
+      "description": "Reference table defining types of medical equipment tracked in CNES. Each equipment type has a code and description (e.g., X-ray machines, ultrasound, CT scanners). This is a small reference table with 144 records. Each record is uniquely identified by the combination of CO_EQUIPAMENTO, NU_RENEM. This table references: EstabEquipamento, TipoEquipamento."
+    },
+    "tbEquipe202605.csv": {
+      "table_name": "tbEquipe202605.csv",
+      "subject": "Equipe",
+      "type": "main",
+      "row_count": 124809,
+      "column_count": 30,
+      "has_primary_key": true,
+      "foreign_key_count": 73,
+      "description": "Contains information about healthcare teams, including primary care teams (ESF - Family Health Strategy), NASF (Family Health Support Centers), and other team-based care models. Each team has an identification code and operational area. Contains 124,809 records. Each record is uniquely identified by CO_EQUIPE. This table has relationships with 37 other tables including EquipeNasfEsf, EstabEquipeProf, Area, and others."
+    },
+    "tbEquipeAtendCompl202605.csv": {
+      "table_name": "tbEquipeAtendCompl202605.csv",
+      "subject": "EquipeAtendCompl",
+      "type": "main",
+      "row_count": 0,
+      "column_count": 8,
+      "has_primary_key": false,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about EquipeAtendCompl in the Brazilian healthcare system (CNES). This is a small reference table with 0 records. Each record is No primary key detected. No foreign key relationships detected."
+    },
+    "tbEquipeChDifer202605.csv": {
+      "table_name": "tbEquipeChDifer202605.csv",
+      "subject": "EquipeChDifer",
+      "type": "main",
+      "row_count": 7,
+      "column_count": 11,
+      "has_primary_key": true,
+      "foreign_key_count": 55,
+      "description": "Main data table storing information about EquipeChDifer in the Brazilian healthcare system (CNES). This is a small reference table with 7 records. Each record is uniquely identified by CO_PROFISSIONAL_SUS. This table has relationships with 33 other tables including EstabCentralReg, EstabEndCompl, EstabEquipeProf, and others."
+    },
+    "tbEstabAtivSecundaria202605.csv": {
+      "table_name": "tbEstabAtivSecundaria202605.csv",
+      "subject": "EstabAtivSecundaria",
+      "type": "main",
+      "row_count": 789016,
+      "column_count": 5,
+      "has_primary_key": true,
+      "foreign_key_count": 51,
+      "description": "Main data table storing information about EstabAtivSecundaria in the Brazilian healthcare system (CNES). Contains 789,016 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_ATIVIDADE_SECUNDARIA. This table has relationships with 25 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "tbEstabContrato202605.csv": {
+      "table_name": "tbEstabContrato202605.csv",
+      "subject": "EstabContrato",
+      "type": "main",
+      "row_count": 0,
+      "column_count": 11,
+      "has_primary_key": false,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about EstabContrato in the Brazilian healthcare system (CNES). This is a small reference table with 0 records. Each record is No primary key detected. No foreign key relationships detected."
+    },
+    "tbEstabHorarioAtend202605.csv": {
+      "table_name": "tbEstabHorarioAtend202605.csv",
+      "subject": "EstabHorarioAtend",
+      "type": "main",
+      "row_count": 2988875,
+      "column_count": 7,
+      "has_primary_key": false,
+      "foreign_key_count": 47,
+      "description": "Main data table storing information about EstabHorarioAtend in the Brazilian healthcare system (CNES). This is a large table with 2,988,875 records. Each record is No primary key detected. This table has relationships with 21 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "tbEstabelecimento202605.csv": {
+      "table_name": "tbEstabelecimento202605.csv",
+      "subject": "Estabelecimento",
+      "type": "main",
+      "row_count": 623208,
+      "column_count": 56,
+      "has_primary_key": true,
+      "foreign_key_count": 92,
+      "description": "Main data table storing information about Estabelecimento in the Brazilian healthcare system (CNES). Contains 623,208 records. Each record is uniquely identified by CO_UNIDADE. This table has relationships with 37 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "tbEstado202605.csv": {
+      "table_name": "tbEstado202605.csv",
+      "subject": "Estado",
+      "type": "main",
+      "row_count": 27,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Reference table of Brazilian states (UF - Unidades Federativas). Simple lookup table with state codes and names. This is a small reference table with 27 records. Each record is uniquely identified by CO_UF. This table references Municipio."
+    },
+    "tbEtnia202605.csv": {
+      "table_name": "tbEtnia202605.csv",
+      "subject": "Etnia",
+      "type": "main",
+      "row_count": 264,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about Etnia in the Brazilian healthcare system (CNES). This is a small reference table with 264 records. Each record is uniquely identified by CO_ETNIA. No foreign key relationships detected."
+    },
+    "tbFluxoDadosClientela202605.csv": {
+      "table_name": "tbFluxoDadosClientela202605.csv",
+      "subject": "FluxoDadosClientela",
+      "type": "main",
+      "row_count": 3,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Main data table storing information about FluxoDadosClientela in the Brazilian healthcare system (CNES). This is a small reference table with 3 records. Each record is uniquely identified by CO_CLIENTELA. This table references Estabelecimento."
+    },
+    "tbGestao202605.csv": {
+      "table_name": "tbGestao202605.csv",
+      "subject": "Gestao",
+      "type": "main",
+      "row_count": 7,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about Gestao in the Brazilian healthcare system (CNES). This is a small reference table with 7 records. Each record is uniquely identified by CO_GESTAO. No foreign key relationships detected."
+    },
+    "tbGrupoAtividade202605.csv": {
+      "table_name": "tbGrupoAtividade202605.csv",
+      "subject": "GrupoAtividade",
+      "type": "main",
+      "row_count": 5,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 4,
+      "description": "Main data table storing information about GrupoAtividade in the Brazilian healthcare system (CNES). This is a small reference table with 5 records. Each record is uniquely identified by CO_GRUPO_ATIVIDADE. This table has relationships with 4 other tables including EstabProgFundo, Atividade, AtividadeEnsino, and others."
+    },
+    "tbGrupoEquipe202605.csv": {
+      "table_name": "tbGrupoEquipe202605.csv",
+      "subject": "GrupoEquipe",
+      "type": "main",
+      "row_count": 29,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 2,
+      "description": "Main data table storing information about GrupoEquipe in the Brazilian healthcare system (CNES). This is a small reference table with 29 records. Each record is uniquely identified by CO_GRUPO_EQUIPE. This table references TipoEquipe."
+    },
+    "tbHemoterapia202605.csv": {
+      "table_name": "tbHemoterapia202605.csv",
+      "subject": "Hemoterapia",
+      "type": "main",
+      "row_count": 2342,
+      "column_count": 45,
+      "has_primary_key": true,
+      "foreign_key_count": 52,
+      "description": "Main data table storing information about Hemoterapia in the Brazilian healthcare system (CNES). Contains 2,342 records. Each record is uniquely identified by CO_UNIDADE. This table has relationships with 25 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "tbIncentivos202605.csv": {
+      "table_name": "tbIncentivos202605.csv",
+      "subject": "Incentivos",
+      "type": "main",
+      "row_count": 12001,
+      "column_count": 12,
+      "has_primary_key": true,
+      "foreign_key_count": 11,
+      "description": "Tracks financial incentives and special funding programs that health establishments participate in or receive. Contains 12,001 records. Each record is uniquely identified by the combination of CO_MUNICIPIO, NU_PORTARIA. This table has relationships with 9 other tables including EquipeNasfEsf, EstabEquipeProf, Area, and others."
+    },
+    "tbInstalFisicaParaAssist202605.csv": {
+      "table_name": "tbInstalFisicaParaAssist202605.csv",
+      "subject": "InstalFisicaParaAssist",
+      "type": "main",
+      "row_count": 66,
+      "column_count": 4,
+      "has_primary_key": true,
+      "foreign_key_count": 5,
+      "description": "Main data table storing information about InstalFisicaParaAssist in the Brazilian healthcare system (CNES). This is a small reference table with 66 records. Each record is uniquely identified by CO_INSTALACAO. This table references: EstabInstFisiAssist, SubtipoInstalacao, TipoInstalacaoFisica."
+    },
+    "tbInstituicaoAvaliadora202605.csv": {
+      "table_name": "tbInstituicaoAvaliadora202605.csv",
+      "subject": "InstituicaoAvaliadora",
+      "type": "main",
+      "row_count": 7,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Contains evaluation or assessment data, including quality certifications, accreditations, or performance evaluations of health establishments. This is a small reference table with 7 records. Each record is uniquely identified by CO_INSTITUICAO_AVALIADORA. This table references EstabAvaliacao."
+    },
+    "tbLeito202605.csv": {
+      "table_name": "tbLeito202605.csv",
+      "subject": "Leito",
+      "type": "main",
+      "row_count": 69,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 5,
+      "description": "Contains information about hospital beds (leitos), including bed types, specializations, and availability across health facilities. This is a small reference table with 69 records. Each record is uniquely identified by CO_LEITO. This table references: EstabComplementar, EstabInstFisiAssist, EstabSipac."
+    },
+    "tbMantenedora202605.csv": {
+      "table_name": "tbMantenedora202605.csv",
+      "subject": "Mantenedora",
+      "type": "main",
+      "row_count": 9980,
+      "column_count": 22,
+      "has_primary_key": true,
+      "foreign_key_count": 59,
+      "description": "Information about entities that maintain/manage health establishments. Contains details about the organizations responsible for facility operations. Contains 9,980 records. Each record is uniquely identified by NU_CNPJ_MANTENEDORA. This table has relationships with 27 other tables including EstabEndCompl, Estabelecimento, EstabCentralReg, and others."
+    },
+    "tbModVinculo202605.csv": {
+      "table_name": "tbModVinculo202605.csv",
+      "subject": "ModVinculo",
+      "type": "main",
+      "row_count": 10,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 2,
+      "description": "Main data table storing information about ModVinculo in the Brazilian healthcare system (CNES). This is a small reference table with 10 records. Each record is uniquely identified by CD_VINCULACAO. This table references: SubTpModVinculo, TpModVinculo."
+    },
+    "tbMotivoDesativEquipe202605.csv": {
+      "table_name": "tbMotivoDesativEquipe202605.csv",
+      "subject": "MotivoDesativEquipe",
+      "type": "main",
+      "row_count": 16,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about MotivoDesativEquipe in the Brazilian healthcare system (CNES). This is a small reference table with 16 records. Each record is uniquely identified by CO_MOTIVO_DESATIV. No foreign key relationships detected."
+    },
+    "tbMotivoDesativacao202605.csv": {
+      "table_name": "tbMotivoDesativacao202605.csv",
+      "subject": "MotivoDesativacao",
+      "type": "main",
+      "row_count": 14,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Main data table storing information about MotivoDesativacao in the Brazilian healthcare system (CNES). This is a small reference table with 14 records. Each record is uniquely identified by CD_MOTIVO_DESAB. This table references Estabelecimento."
+    },
+    "tbMunicipio202605.csv": {
+      "table_name": "tbMunicipio202605.csv",
+      "subject": "Municipio",
+      "type": "main",
+      "row_count": 5607,
+      "column_count": 13,
+      "has_primary_key": true,
+      "foreign_key_count": 12,
+      "description": "Reference table of all Brazilian municipalities. Contains municipality codes, names, state associations, and administrative configurations for health system management. Contains 5,607 records. Each record is uniquely identified by CO_MUNICIPIO. This table has relationships with 10 other tables including EquipeNasfEsf, EstabEquipeProf, Area, and others."
+    },
+    "tbNaturezaJuridica202605.csv": {
+      "table_name": "tbNaturezaJuridica202605.csv",
+      "subject": "NaturezaJuridica",
+      "type": "main",
+      "row_count": 100,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about NaturezaJuridica in the Brazilian healthcare system (CNES). This is a small reference table with 100 records. Each record is uniquely identified by CO_NATUREZA_JUR. No foreign key relationships detected."
+    },
+    "tbOrgaoEmissor202605.csv": {
+      "table_name": "tbOrgaoEmissor202605.csv",
+      "subject": "OrgaoEmissor",
+      "type": "main",
+      "row_count": 42,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Main data table storing information about OrgaoEmissor in the Brazilian healthcare system (CNES). This is a small reference table with 42 records. Each record is uniquely identified by CO_ORGAO_EMISSOR. No foreign key relationships detected."
+    },
+    "tbPoloBase202605.csv": {
+      "table_name": "tbPoloBase202605.csv",
+      "subject": "PoloBase",
+      "type": "main",
+      "row_count": 400,
+      "column_count": 30,
+      "has_primary_key": true,
+      "foreign_key_count": 30,
+      "description": "Main data table storing information about PoloBase in the Brazilian healthcare system (CNES). This is a small reference table with 400 records. Each record is uniquely identified by CO_SEQ_POLO_BASE. This table has relationships with 15 other tables including Aldeia, EstabPoloAldeia, Dsei, and others."
+    },
+    "tbProfResidencia202605.csv": {
+      "table_name": "tbProfResidencia202605.csv",
+      "subject": "ProfResidencia",
+      "type": "main",
+      "row_count": 9013,
+      "column_count": 9,
+      "has_primary_key": true,
+      "foreign_key_count": 90,
+      "description": "Main data table storing information about ProfResidencia in the Brazilian healthcare system (CNES). Contains 9,013 records. Each record is uniquely identified by the combination of CO_UNIDADE, NU_RESIDENCIA, CO_PROFISSIONAL_SUS. This table has relationships with 36 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "tbQuimioRadio202605.csv": {
+      "table_name": "tbQuimioRadio202605.csv",
+      "subject": "QuimioRadio",
+      "type": "main",
+      "row_count": 1348,
+      "column_count": 43,
+      "has_primary_key": true,
+      "foreign_key_count": 54,
+      "description": "Main data table storing information about QuimioRadio in the Brazilian healthcare system (CNES). Contains 1,348 records. Each record is uniquely identified by CO_UNIDADE. This table has relationships with 26 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabEquipamento, and others."
+    },
+    "tbResidenciaMed202605.csv": {
+      "table_name": "tbResidenciaMed202605.csv",
+      "subject": "ResidenciaMed",
+      "type": "main",
+      "row_count": 1272,
+      "column_count": 27,
+      "has_primary_key": true,
+      "foreign_key_count": 114,
+      "description": "Main data table storing information about ResidenciaMed in the Brazilian healthcare system (CNES). Contains 1,272 records. Each record is uniquely identified by the combination of CO_UNIDADE, NU_RESIDENCIA. This table has relationships with 40 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabInstFisiAssist, and others."
+    },
+    "tbSegmento202605.csv": {
+      "table_name": "tbSegmento202605.csv",
+      "subject": "Segmento",
+      "type": "main",
+      "row_count": 21941,
+      "column_count": 7,
+      "has_primary_key": true,
+      "foreign_key_count": 46,
+      "description": "Main data table storing information about Segmento in the Brazilian healthcare system (CNES). Contains 21,941 records. Each record is uniquely identified by the combination of CO_MUNICIPIO, CO_SEGMENTO. This table has relationships with 22 other tables including EquipeNasfEsf, EstabEquipeProf, Area, and others."
+    },
+    "tbServicoApoio202605.csv": {
+      "table_name": "tbServicoApoio202605.csv",
+      "subject": "ServicoApoio",
+      "type": "main",
+      "row_count": 12,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Main data table storing information about ServicoApoio in the Brazilian healthcare system (CNES). This is a small reference table with 12 records. Each record is uniquely identified by CO_SERVICO_APOIO. This table references EstabServicoApoio."
+    },
+    "tbServicoEspecializado202605.csv": {
+      "table_name": "tbServicoEspecializado202605.csv",
+      "subject": "ServicoEspecializado",
+      "type": "main",
+      "row_count": 73,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 2,
+      "description": "Reference table of specialized healthcare services. Defines the types of specialized medical services that can be offered by health facilities. This is a small reference table with 73 records. Each record is uniquely identified by CO_SERVICO_ESPECIALIZADO. This table references: EstabServClass, ClassificacaoServico."
+    },
+    "tbServicoReferenciado202605.csv": {
+      "table_name": "tbServicoReferenciado202605.csv",
+      "subject": "ServicoReferenciado",
+      "type": "main",
+      "row_count": 7991,
+      "column_count": 9,
+      "has_primary_key": true,
+      "foreign_key_count": 59,
+      "description": "Main data table storing information about ServicoReferenciado in the Brazilian healthcare system (CNES). Contains 7,991 records. Each record is uniquely identified by the combination of CO_UNIDADE, CO_SERVICO_REFERENCIADO, CO_CNPJ. This table has relationships with 30 other tables including EstabAtendPrestConv, EstabColetaSelRejeito, EstabEquipamento, and others."
+    },
+    "tbSubGruposHabilitacao202605.csv": {
+      "table_name": "tbSubGruposHabilitacao202605.csv",
+      "subject": "SubGruposHabilitacao",
+      "type": "main",
+      "row_count": 563,
+      "column_count": 4,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Tracks accreditations and qualifications (habilitações) that authorize health facilities to provide specific high-complexity services. This is a small reference table with 563 records. Each record is uniquely identified by the combination of CO_CODIGO_GRUPO, TP_ORIGEM. This table references EstabSipac."
+    },
+    "tbSubTipo202605.csv": {
+      "table_name": "tbSubTipo202605.csv",
+      "subject": "SubTipo",
+      "type": "main",
+      "row_count": 91,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 4,
+      "description": "Reference/lookup table defining types or categories for SubTipo. Provides standardized classifications used throughout the CNES system. This is a small reference table with 91 records. Each record is uniquely identified by the combination of CO_TIPO_UNIDADE, CO_SUB_TIPO. This table references: EstabSubTipo, Estabelecimento, TipoUnidade."
+    },
+    "tbSubTipoEquipe202605.csv": {
+      "table_name": "tbSubTipoEquipe202605.csv",
+      "subject": "SubTipoEquipe",
+      "type": "main",
+      "row_count": 3,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 3,
+      "description": "Reference/lookup table defining types or categories for SubTipoEquipe. Provides standardized classifications used throughout the CNES system. This is a small reference table with 3 records. Each record is uniquely identified by CO_SUB_TIPO_EQUIPE. This table references: Equipe, TipoEqSubTipo, TipoEquipe."
+    },
+    "tbSubTpModVinculo202605.csv": {
+      "table_name": "tbSubTpModVinculo202605.csv",
+      "subject": "SubTpModVinculo",
+      "type": "main",
+      "row_count": 60,
+      "column_count": 6,
+      "has_primary_key": true,
+      "foreign_key_count": 6,
+      "description": "Main data table storing information about SubTpModVinculo in the Brazilian healthcare system (CNES). This is a small reference table with 60 records. Each record is uniquely identified by DS_CONCEITO. This table references: ModVinculo, TpModVinculo, SubTpModVinculo."
+    },
+    "tbSubtipoInstalacao202605.csv": {
+      "table_name": "tbSubtipoInstalacao202605.csv",
+      "subject": "SubtipoInstalacao",
+      "type": "main",
+      "row_count": 11,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 3,
+      "description": "Reference/lookup table defining types or categories for SubtipoInstalacao. Provides standardized classifications used throughout the CNES system. This is a small reference table with 11 records. Each record is uniquely identified by CO_SUBTIPO_INSTALACAO. This table references: EstabInstFisiAssist, InstalFisicaParaAssist."
+    },
+    "tbTipoAbrangencia202605.csv": {
+      "table_name": "tbTipoAbrangencia202605.csv",
+      "subject": "TipoAbrangencia",
+      "type": "main",
+      "row_count": 6,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Reference/lookup table defining types or categories for TipoAbrangencia. Provides standardized classifications used throughout the CNES system. This is a small reference table with 6 records. Each record is uniquely identified by CO_TIPO_ABRANGENCIA. This table references Estabelecimento."
+    },
+    "tbTipoCertidao202605.csv": {
+      "table_name": "tbTipoCertidao202605.csv",
+      "subject": "TipoCertidao",
+      "type": "main",
+      "row_count": 4,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Reference/lookup table defining types or categories for TipoCertidao. Provides standardized classifications used throughout the CNES system. This is a small reference table with 4 records. Each record is uniquely identified by CO_TIPO_CERTIDAO. No foreign key relationships detected."
+    },
+    "tbTipoCgDifer202605.csv": {
+      "table_name": "tbTipoCgDifer202605.csv",
+      "subject": "TipoCgDifer",
+      "type": "main",
+      "row_count": 3,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Reference/lookup table defining types or categories for TipoCgDifer. Provides standardized classifications used throughout the CNES system. This is a small reference table with 3 records. Each record is uniquely identified by TP_CHDIFER. No foreign key relationships detected."
+    },
+    "tbTipoEqSubTipo202605.csv": {
+      "table_name": "tbTipoEqSubTipo202605.csv",
+      "subject": "TipoEqSubTipo",
+      "type": "main",
+      "row_count": 56,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 7,
+      "description": "Reference/lookup table defining types or categories for TipoEqSubTipo. Provides standardized classifications used throughout the CNES system. This is a small reference table with 56 records. Each record is uniquely identified by the combination of TP_EQUIPE, CO_SUB_TIPO_EQUIPE. This table has relationships with 4 other tables including Equipe, TipoEquipe, SubTipoEquipe, and others."
+    },
+    "tbTipoEquipamento202605.csv": {
+      "table_name": "tbTipoEquipamento202605.csv",
+      "subject": "TipoEquipamento",
+      "type": "main",
+      "row_count": 12,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 2,
+      "description": "Reference/lookup table defining types or categories for TipoEquipamento. Provides standardized classifications used throughout the CNES system. This is a small reference table with 12 records. Each record is uniquely identified by CO_TIPO_EQUIPAMENTO. This table references: EstabEquipamento, Equipamento."
+    },
+    "tbTipoEquipe202605.csv": {
+      "table_name": "tbTipoEquipe202605.csv",
+      "subject": "TipoEquipe",
+      "type": "main",
+      "row_count": 69,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 2,
+      "description": "Reference/lookup table defining types or categories for TipoEquipe. Provides standardized classifications used throughout the CNES system. This is a small reference table with 69 records. Each record is uniquely identified by the combination of TP_EQUIPE, CO_GRUPO_EQUIPE. This table references: GrupoEquipe, TipoEquipe."
+    },
+    "tbTipoEscolaridade202605.csv": {
+      "table_name": "tbTipoEscolaridade202605.csv",
+      "subject": "TipoEscolaridade",
+      "type": "main",
+      "row_count": 11,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 0,
+      "description": "Reference/lookup table defining types or categories for TipoEscolaridade. Provides standardized classifications used throughout the CNES system. This is a small reference table with 11 records. Each record is uniquely identified by CO_ESCOLARIDADE. No foreign key relationships detected."
+    },
+    "tbTipoEstabelecimento202605.csv": {
+      "table_name": "tbTipoEstabelecimento202605.csv",
+      "subject": "TipoEstabelecimento",
+      "type": "main",
+      "row_count": 27,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 2,
+      "description": "Reference/lookup table defining types or categories for TipoEstabelecimento. Provides standardized classifications used throughout the CNES system. This is a small reference table with 27 records. Each record is uniquely identified by CO_TIPO_ESTABELECIMENTO. This table references: TipoEstabAtividade, Estabelecimento."
+    },
+    "tbTipoInstalacaoFisica202605.csv": {
+      "table_name": "tbTipoInstalacaoFisica202605.csv",
+      "subject": "TipoInstalacaoFisica",
+      "type": "main",
+      "row_count": 4,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Reference/lookup table defining types or categories for TipoInstalacaoFisica. Provides standardized classifications used throughout the CNES system. This is a small reference table with 4 records. Each record is uniquely identified by CO_TIPO_INSTALACAO_FISICA. This table references InstalFisicaParaAssist."
+    },
+    "tbTipoServicoReferenciado202605.csv": {
+      "table_name": "tbTipoServicoReferenciado202605.csv",
+      "subject": "TipoServicoReferenciado",
+      "type": "main",
+      "row_count": 30,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 3,
+      "description": "Reference/lookup table defining types or categories for TipoServicoReferenciado. Provides standardized classifications used throughout the CNES system. This is a small reference table with 30 records. Each record is uniquely identified by CO_TIPO_SERVICO_REFERENCIADO. This table references: ServicoReferenciado, Equipe."
+    },
+    "tbTipoUnidade202605.csv": {
+      "table_name": "tbTipoUnidade202605.csv",
+      "subject": "TipoUnidade",
+      "type": "main",
+      "row_count": 39,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Reference/lookup table defining types or categories for TipoUnidade. Provides standardized classifications used throughout the CNES system. This is a small reference table with 39 records. Each record is uniquely identified by CO_TIPO_UNIDADE. This table references Estabelecimento."
+    },
+    "tbTpModVinculo202605.csv": {
+      "table_name": "tbTpModVinculo202605.csv",
+      "subject": "TpModVinculo",
+      "type": "main",
+      "row_count": 39,
+      "column_count": 3,
+      "has_primary_key": true,
+      "foreign_key_count": 3,
+      "description": "Main data table storing information about TpModVinculo in the Brazilian healthcare system (CNES). This is a small reference table with 39 records. Each record is uniquely identified by the combination of CD_VINCULACAO, TP_VINCULO. This table references: ModVinculo, SubTpModVinculo."
+    },
+    "tbTurnoAtendimento202605.csv": {
+      "table_name": "tbTurnoAtendimento202605.csv",
+      "subject": "TurnoAtendimento",
+      "type": "main",
+      "row_count": 7,
+      "column_count": 2,
+      "has_primary_key": true,
+      "foreign_key_count": 1,
+      "description": "Main data table storing information about TurnoAtendimento in the Brazilian healthcare system (CNES). This is a small reference table with 7 records. Each record is uniquely identified by CO_TURNO_ATENDIMENTO. This table references Estabelecimento."
+    }
+  }
+}
