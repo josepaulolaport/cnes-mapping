@@ -10,6 +10,7 @@ BASE_DE_DADOS_CNES_*/
 output/
 logs/
 import_errors/
+codedb.snapshot
 codedb.snapshot/
 *.db
 *.sqlite
