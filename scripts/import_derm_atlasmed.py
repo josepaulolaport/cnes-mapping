@@ -142,23 +142,85 @@ def valid_br_point(lat: Optional[float], lon: Optional[float]) -> bool:
 
 
 def first_phone(raw: Optional[str]) -> Optional[str]:
+    """Normalize BR phone to 10–11 digits (DDD + number). Drop trunk leading 0."""
     if not raw:
         return None
-    # CNES often packs multiple phones with "/"
-    chunk = re.split(r"[/;,]", raw)[0]
+    chunk = re.split(r"[/;,|]", str(raw))[0]
     d = digits(chunk)
-    if not d or len(d) < 8:
+    if not d:
+        return None
+    # strip international 55
+    if d.startswith("55") and len(d) >= 12:
+        d = d[2:]
+    # strip trunk zero (0 + DDD + number)
+    if d.startswith("0") and len(d) in (11, 12):
+        d = d[1:]
+    if len(d) < 10 or len(d) > 11:
+        return None
+    # reject obvious placeholders
+    if len(set(d)) == 1:
         return None
     return d
 
 
 def clean_email(raw: Optional[str]) -> Optional[str]:
+    """Take first valid email when CNES packs several."""
     if not raw:
         return None
-    e = raw.strip().lower()
-    if "@" not in e or "." not in e.split("@")[-1]:
+    blob = str(raw).strip().lower()
+    # split common multi-email separators
+    parts = re.split(r"[\s;,/|]+|(?:\s+-\s+)", blob)
+    for part in parts:
+        e = part.strip().strip(".,;:")
+        if not e or "@" not in e:
+            continue
+        local, _, domain = e.partition("@")
+        if not local or "." not in domain or " " in e:
+            continue
+        if re.match(r"^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$", e):
+            return e[:320]
+    # last resort: search inside string
+    m = re.search(r"[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}", blob)
+    return m.group(0)[:320] if m else None
+
+
+def clean_person_name(raw: Optional[str]) -> Optional[str]:
+    if not raw:
         return None
-    return e[:320]
+    s = re.sub(r"\s+", " ", str(raw).strip())
+    return s or None
+
+
+def clean_website(raw: Optional[str]) -> Optional[str]:
+    if not raw:
+        return None
+    s = str(raw).strip()
+    if not s:
+        return None
+    # emails wrongly placed in URL field
+    if "@" in s and "://" not in s and not s.lower().startswith("www."):
+        return None
+    low = s.lower()
+    if low.startswith("http://") or low.startswith("https://"):
+        return s[:500]
+    if low.startswith("www.") or re.match(r"^[a-z0-9.\-]+\.[a-z]{2,}", low):
+        return ("https://" + s.lstrip("/"))[:500]
+    return None
+
+
+def clean_crm_number(raw: Optional[str]) -> Optional[str]:
+    d = digits(raw)
+    if not d:
+        return None
+    d = d.lstrip("0") or "0"
+    return d[:20]
+
+
+def clean_uf(raw: Optional[str]) -> Optional[str]:
+    if not raw:
+        return None
+    s = re.sub(r"[^A-Za-z]", "", str(raw)).upper()
+    return s if len(s) == 2 else None
 
 
 def upsert_df(engine, table: str, df: pd.DataFrame, conflict: list[str], updates: list[str]) -> int:
@@ -714,8 +776,8 @@ class DermETL:
                 method = "cnpj"
             else:
                 fac_id = new_id()
-                trade = row.get("NO_FANTASIA")
-                legal = row.get("NO_RAZAO_SOCIAL")
+                trade = clean_person_name(row.get("NO_FANTASIA"))
+                legal = clean_person_name(row.get("NO_RAZAO_SOCIAL"))
                 display = trade or legal or f"CNES {code}"
                 lat = parse_coord(row.get("NU_LATITUDE"))
                 lon = parse_coord(row.get("NU_LONGITUDE"))
@@ -756,17 +818,17 @@ class DermETL:
                         "cnpj": cnpj,
                         "cpf": row.get("cpf_n") if tax_type == "PF" else None,
                         "country": "BR",
-                        "state": row.get("CO_SIGLA_ESTADO"),
-                        "city": row.get("NO_MUNICIPIO"),
-                        "neighborhood": row.get("NO_BAIRRO"),
-                        "street_address": row.get("NO_LOGRADOURO"),
-                        "street_number": row.get("NU_ENDERECO"),
-                        "address_complement": row.get("NO_COMPLEMENTO"),
+                        "state": clean_uf(row.get("CO_SIGLA_ESTADO")),
+                        "city": clean_person_name(row.get("NO_MUNICIPIO")),
+                        "neighborhood": clean_person_name(row.get("NO_BAIRRO")),
+                        "street_address": clean_person_name(row.get("NO_LOGRADOURO")),
+                        "street_number": clean_person_name(row.get("NU_ENDERECO")),
+                        "address_complement": clean_person_name(row.get("NO_COMPLEMENTO")),
                         "postal_code": digits(row.get("CO_CEP"), 8),
                         "phone_number": first_phone(row.get("NU_TELEFONE")),
                         "fax_number": first_phone(row.get("NU_FAX")),
                         "email": clean_email(row.get("NO_EMAIL")),
-                        "website_url": row.get("NO_URL"),
+                        "website_url": clean_website(row.get("NO_URL")),
                         "conformity_status": "INCOMPLETE",
                         "unit_type": ut_names.get(unit_type_code) if unit_type_code else None,
                         "unit_subtype": subtype_name,
@@ -971,20 +1033,21 @@ class DermETL:
                 prof_id_map[cid] = existing_key[key]
                 continue
             pid = new_id()
-            first, last, full = split_name(row.get("NO_PROFISSIONAL"))
+            first, last, full = split_name(clean_person_name(row.get("NO_PROFISSIONAL")))
             inserts.append(
                 {
                     "id": pid,
                     "first_name": first,
                     "last_name": last,
                     "full_name": full,
-                    "social_name": row.get("NO_SOCIAL"),
-                    "tax_id": digits(row.get("CO_CPF"), 11),
+                    "social_name": clean_person_name(row.get("NO_SOCIAL")),
+                    # CNES open-data CPF is masked (XXX.123.456.XX) — never store
+                    "tax_id": None,
                     "primary_specialty_label": DERM_LABEL,
                     "primary_occupation_code": CBO_DERM,
                     "crm_council": row.get("CO_CONSELHO_CLASSE"),
-                    "crm_number": digits(row.get("NU_REGISTRO")),
-                    "crm_state": (str(row["SG_UF_CRM"]).upper() if row.get("SG_UF_CRM") else None),
+                    "crm_number": clean_crm_number(row.get("NU_REGISTRO")),
+                    "crm_state": clean_uf(row.get("SG_UF_CRM")),
                     "source_provider": SOURCE_PROVIDER,
                     "external_source_id": cid,
                     "cnes_professional_id": cid,
@@ -1366,7 +1429,7 @@ class DermETL:
 
         updates = []
         for _, r in matched.drop_duplicates("facility_id").iterrows():
-            name = names.get(r["CO_PROFISSIONAL_SUS"])
+            name = clean_person_name(names.get(r["CO_PROFISSIONAL_SUS"]))
             if name:
                 updates.append((r["facility_id"], name))
         logger.info("Director matches with resolvable name: %s", len(updates))
@@ -1548,6 +1611,209 @@ class DermETL:
         logger.info("Prune report: %s", report)
         return report
 
+    def clean_loaded_data(self) -> dict[str, int]:
+        """
+        Post-load cleanup for CNES-sourced rows:
+          - drop masked/fake professional tax_id (CPF)
+          - normalize phones, emails, websites, names, CRM, CNPJ/CNES/CEP
+        """
+        logger.info("=== CLEAN LOADED DATA ===")
+        report: dict[str, int] = {}
+        if self.dry_run:
+            logger.info("dry-run: skip clean writes")
+            return report
+
+        with self.engine.begin() as conn:
+            # 1) Remove fake CPFs from masked CNES professional file
+            r = conn.execute(
+                text(
+                    """
+                    UPDATE professionals
+                    SET tax_id = NULL, updated_at = NOW()
+                    WHERE source_provider = :sp AND tax_id IS NOT NULL
+                    """
+                ),
+                {"sp": SOURCE_PROVIDER},
+            )
+            report["professionals_tax_id_cleared"] = r.rowcount or 0
+
+            # 2) Pull cnes facilities into pandas for field-level cleans
+            fac = pd.read_sql(
+                text(
+                    """
+                    SELECT id, name, legal_name, trade_name, state, city, neighborhood,
+                           street_address, street_number, address_complement,
+                           phone_number, fax_number, email, website_url,
+                           cnpj, cpf, cnes_code, postal_code, responsible_name
+                    FROM facilities
+                    WHERE source_provider = :sp
+                    """
+                ),
+                conn,
+                params={"sp": SOURCE_PROVIDER},
+            )
+
+        if fac.empty:
+            logger.info("No cnes facilities to clean")
+            return report
+
+        cleaned = fac.copy()
+        for col in [
+            "name",
+            "legal_name",
+            "trade_name",
+            "city",
+            "neighborhood",
+            "street_address",
+            "street_number",
+            "address_complement",
+            "responsible_name",
+        ]:
+            cleaned[col] = cleaned[col].map(clean_person_name)
+        cleaned["state"] = cleaned["state"].map(clean_uf)
+        cleaned["phone_number"] = cleaned["phone_number"].map(first_phone)
+        cleaned["fax_number"] = cleaned["fax_number"].map(first_phone)
+        cleaned["email"] = cleaned["email"].map(clean_email)
+        cleaned["website_url"] = cleaned["website_url"].map(clean_website)
+        cleaned["cnpj"] = cleaned["cnpj"].map(lambda x: digits(x, 14))
+        cleaned["cpf"] = cleaned["cpf"].map(lambda x: digits(x, 11))
+        cleaned["cnes_code"] = cleaned["cnes_code"].map(lambda x: digits(x, 7))
+        cleaned["postal_code"] = cleaned["postal_code"].map(lambda x: digits(x, 8))
+        # PF keeps cpf; PJ should not carry stray cpf
+        cleaned.loc[cleaned["cnpj"].notna(), "cpf"] = None
+
+        with self.engine.begin() as conn:
+            cleaned.to_sql("_derm_clean_fac", conn, if_exists="replace", index=False)
+            r = conn.execute(
+                text(
+                    """
+                    UPDATE facilities f SET
+                      name = t.name,
+                      legal_name = t.legal_name,
+                      trade_name = t.trade_name,
+                      state = t.state,
+                      city = t.city,
+                      neighborhood = t.neighborhood,
+                      street_address = t.street_address,
+                      street_number = t.street_number,
+                      address_complement = t.address_complement,
+                      phone_number = t.phone_number,
+                      fax_number = t.fax_number,
+                      email = t.email,
+                      website_url = t.website_url,
+                      cnpj = t.cnpj,
+                      cpf = t.cpf,
+                      cnes_code = t.cnes_code,
+                      postal_code = t.postal_code,
+                      responsible_name = t.responsible_name,
+                      updated_at = NOW()
+                    FROM _derm_clean_fac t
+                    WHERE f.id = t.id
+                    """
+                )
+            )
+            report["facilities_cleaned"] = r.rowcount or 0
+            conn.execute(text("DROP TABLE IF EXISTS _derm_clean_fac"))
+
+            # 3) Professionals name + CRM normalize
+            pros = pd.read_sql(
+                text(
+                    """
+                    SELECT id, first_name, last_name, full_name, social_name,
+                           crm_number, crm_state, primary_specialty_label
+                    FROM professionals
+                    WHERE source_provider = :sp
+                    """
+                ),
+                conn,
+                params={"sp": SOURCE_PROVIDER},
+            )
+
+        if len(pros):
+            p2 = pros.copy()
+            p2["full_name"] = p2["full_name"].map(clean_person_name)
+            p2["social_name"] = p2["social_name"].map(clean_person_name)
+            p2["primary_specialty_label"] = p2["primary_specialty_label"].map(clean_person_name)
+            # rebuild first/last from full when present
+            rebuilt = p2["full_name"].map(
+                lambda n: split_name(n) if n else ("DESCONHECIDO", "DESCONHECIDO", None)
+            )
+            p2["first_name"] = rebuilt.map(lambda x: x[0])
+            p2["last_name"] = rebuilt.map(lambda x: x[1])
+            p2["crm_number"] = p2["crm_number"].map(clean_crm_number)
+            p2["crm_state"] = p2["crm_state"].map(clean_uf)
+
+            with self.engine.begin() as conn:
+                p2.to_sql("_derm_clean_pro", conn, if_exists="replace", index=False)
+                r = conn.execute(
+                    text(
+                        """
+                        UPDATE professionals p SET
+                          first_name = t.first_name,
+                          last_name = t.last_name,
+                          full_name = t.full_name,
+                          social_name = t.social_name,
+                          crm_number = t.crm_number,
+                          crm_state = t.crm_state,
+                          primary_specialty_label = t.primary_specialty_label,
+                          updated_at = NOW()
+                        FROM _derm_clean_pro t
+                        WHERE p.id = t.id
+                        """
+                    )
+                )
+                report["professionals_cleaned"] = r.rowcount or 0
+                conn.execute(text("DROP TABLE IF EXISTS _derm_clean_pro"))
+
+        # 4) Normalize responsible_name on ANY facility we filled (incl. ortho reuse)
+        with self.engine.begin() as conn:
+            resp = pd.read_sql(
+                text(
+                    """
+                    SELECT id, responsible_name
+                    FROM facilities
+                    WHERE responsible_name IS NOT NULL AND btrim(responsible_name) <> ''
+                    """
+                ),
+                conn,
+            )
+        if len(resp):
+            resp["responsible_name"] = resp["responsible_name"].map(clean_person_name)
+            with self.engine.begin() as conn:
+                resp.to_sql("_derm_clean_resp", conn, if_exists="replace", index=False)
+                r = conn.execute(
+                    text(
+                        """
+                        UPDATE facilities f
+                        SET responsible_name = t.responsible_name, updated_at = NOW()
+                        FROM _derm_clean_resp t
+                        WHERE f.id = t.id
+                        """
+                    )
+                )
+                report["responsible_names_normalized"] = r.rowcount or 0
+                conn.execute(text("DROP TABLE IF EXISTS _derm_clean_resp"))
+
+        # 5) Specialty labels on derm links
+        with self.engine.begin() as conn:
+            r = conn.execute(
+                text(
+                    """
+                    UPDATE facility_professionals
+                    SET specialty_label = :label, updated_at = NOW()
+                    WHERE occupation_code = :cbo
+                      AND (specialty_label IS NULL OR specialty_label <> :label)
+                    """
+                ),
+                {"label": DERM_LABEL, "cbo": CBO_DERM},
+            )
+            report["facility_professionals_label_normalized"] = r.rowcount or 0
+
+        out = self.out_dir / f"derm_etl_clean_{self.v}.json"
+        out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+        logger.info("Clean report: %s", report)
+        return report
+
     def verify(self) -> dict[str, Any]:
         logger.info("=== VERIFY ===")
         with self.engine.connect() as conn:
@@ -1611,6 +1877,7 @@ class DermETL:
         self.load_representatives(fmap)
         self.fill_responsible_names()  # derm + ortho (all CNES-linked facilities)
         self.prune_to_universe()
+        self.clean_loaded_data()
         self.verify()
 
 
@@ -1632,6 +1899,7 @@ def main() -> None:
             "services",
             "representatives",
             "responsible_names",
+            "clean",
             "prune",
             "verify",
             "all",
@@ -1664,6 +1932,8 @@ def main() -> None:
         etl.load_representatives(fmap)
     elif args.step == "responsible_names":
         etl.fill_responsible_names()
+    elif args.step == "clean":
+        etl.clean_loaded_data()
     elif args.step == "prune":
         etl.prune_to_universe()
         etl.verify()
