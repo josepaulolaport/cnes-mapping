@@ -748,7 +748,7 @@ class DermETL:
             if fac_id not in existing_fvp:
                 profiles.append(
                     {
-                        "id": f"fvp_{fac_id}" if not fac_id.startswith("fvp_") else new_id(),
+                        "id": new_id(),
                         "facility_id": fac_id,
                         "vertical_id": vertical_id,
                         "is_active": True,
@@ -827,10 +827,10 @@ class DermETL:
             for uid in list(unit_to_fac.keys()):
                 if uid in by_ext:
                     unit_to_fac[uid] = by_ext[uid]
-            # rebuild profiles with reconciled ids for inserts
+            # rebuild profiles with reconciled ids for all universe facilities
             profiles = [
                 {
-                    "id": f"fvp_{fid}",
+                    "id": new_id(),
                     "facility_id": fid,
                     "vertical_id": vertical_id,
                     "is_active": True,
