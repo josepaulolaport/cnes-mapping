@@ -152,9 +152,10 @@ def first_phone(raw: Optional[str]) -> Optional[str]:
     # strip international 55
     if d.startswith("55") and len(d) >= 12:
         d = d[2:]
-    # strip trunk zero (0 + DDD + number)
-    if d.startswith("0") and len(d) in (11, 12):
-        d = d[1:]
+    # strip trunk zero(s)
+    d = d.lstrip("0")
+    if not d:
+        return None
     if len(d) < 10 or len(d) > 11:
         return None
     # reject obvious placeholders
@@ -194,13 +195,14 @@ def clean_person_name(raw: Optional[str]) -> Optional[str]:
 def clean_website(raw: Optional[str]) -> Optional[str]:
     if not raw:
         return None
-    s = str(raw).strip()
+    # keep first token only (CNES sometimes appends email after URL)
+    s = str(raw).strip().split()[0].strip(".,;:")
     if not s:
         return None
-    # emails wrongly placed in URL field
-    if "@" in s and "://" not in s and not s.lower().startswith("www."):
-        return None
     low = s.lower()
+    # reject email-like values
+    if "@" in low:
+        return None
     if low.startswith("http://") or low.startswith("https://"):
         return s[:500]
     if low.startswith("www.") or re.match(r"^[a-z0-9.\-]+\.[a-z]{2,}", low):
