@@ -38,12 +38,17 @@ DEFAULT_OUT = Path(__file__).resolve().parent.parent / "output"
 NOW = datetime.now(timezone.utc).replace(tzinfo=None)
 
 CBO_DERM = "225135"
+CBO_PLASTICO = "225235"
+CBO_ODONTO_AUX = frozenset(
+    {"322405", "322410", "322415", "322420", "322425", "322430"}
+)
 DERM_LABEL = "MEDICO DERMATOLOGISTA"
 VERTICAL_CODE = "DERMATOLOGIA"
 VERTICAL_NAME = "Dermatologia"
 SOURCE_PROVIDER = "cnes"
 
-IN_SCOPE_TP_UNIDADE = frozenset({"04", "22", "36", "05", "07", "62"})
+# Pure dermatology clinics only (matches prior "somente dermatologia" Excel cut).
+IN_SCOPE_TP_UNIDADE = frozenset({"04", "22", "36"})
 
 ESTAB_COLS = [
     "CO_UNIDADE",
@@ -209,11 +214,29 @@ class DermETL:
     # ------------------------------------------------------------------
     # Universe build
     # ------------------------------------------------------------------
+    def odonto_cbos(self) -> set[str]:
+        if "odonto_cbos" in self._cache:
+            return self._cache["odonto_cbos"]
+        cat = read_csv(self.f("tbAtividadeProfissional"))
+        codes = set(CBO_ODONTO_AUX)
+        for _, row in cat.iterrows():
+            code = row.get("CO_CBO")
+            if not code or not str(code).startswith("2232"):
+                continue
+            label = (row.get("DS_ATIVIDADE_PROFISSIONAL") or "").upper()
+            if "DENTISTA" in label or "ODONT" in label:
+                codes.add(str(code))
+        self._cache["odonto_cbos"] = codes
+        return codes
+
     def build_universe(self) -> dict[str, Any]:
         if "universe" in self._cache:
             return self._cache["universe"]
 
-        ch = read_csv(
+        odonto = self.odonto_cbos()
+        target_cbos = odonto | {CBO_DERM, CBO_PLASTICO}
+
+        ch_all = read_csv(
             self.f("tbCargaHorariaSus"),
             usecols=[
                 "CO_UNIDADE",
@@ -225,12 +248,27 @@ class DermETL:
                 "SG_UF_CRM",
             ],
         )
-        ch = ch[ch["CO_CBO"] == CBO_DERM].copy()
-        ch = ch.dropna(subset=["CO_UNIDADE", "CO_PROFISSIONAL_SUS"])
+        ch_all = ch_all.dropna(subset=["CO_UNIDADE", "CO_CBO"])
+
+        # Exclusivity among derm / plastic / odonto specialty CBOs only.
+        ch_target = ch_all[ch_all["CO_CBO"].isin(target_cbos)]
+        by_unit = ch_target.groupby("CO_UNIDADE")["CO_CBO"].apply(set)
+        pure_units = {
+            uid
+            for uid, cbos in by_unit.items()
+            if CBO_DERM in cbos
+            and CBO_PLASTICO not in cbos
+            and not (cbos & odonto)
+        }
+
+        ch = ch_all[ch_all["CO_CBO"] == CBO_DERM].copy()
+        ch = ch[ch["CO_UNIDADE"].isin(pure_units)]
+        ch = ch.dropna(subset=["CO_PROFISSIONAL_SUS"])
         ch = ch.drop_duplicates(["CO_UNIDADE", "CO_PROFISSIONAL_SUS"], keep="last")
 
         est = read_csv(self.f("tbEstabelecimento"), usecols=ESTAB_COLS)
-        est = est[est["CO_UNIDADE"].isin(set(ch["CO_UNIDADE"]))].copy()
+        est_derm_any = est[est["CO_UNIDADE"].isin(set(ch_all.loc[ch_all["CO_CBO"] == CBO_DERM, "CO_UNIDADE"]))].copy()
+        est = est[est["CO_UNIDADE"].isin(pure_units)].copy()
         est["active"] = est["CO_MOTIVO_DESAB"].isna()
         est["in_scope_type"] = est["TP_UNIDADE"].isin(IN_SCOPE_TP_UNIDADE)
         est_ok = est[est["active"] & est["in_scope_type"]].copy()
@@ -251,7 +289,6 @@ class DermETL:
 
         unit_ids = set(est_ok["CO_UNIDADE"])
         links = ch[ch["CO_UNIDADE"].isin(unit_ids)].copy()
-        # drop units that lost all links after filter (shouldn't happen)
         est_ok = est_ok[est_ok["CO_UNIDADE"].isin(set(links["CO_UNIDADE"]))].copy()
 
         prof_ids = set(links["CO_PROFISSIONAL_SUS"])
@@ -282,7 +319,6 @@ class DermETL:
             else pd.DataFrame(columns=usecols)
         )
 
-        # CRM enrichment from carga (prefer non-null registro)
         crm = (
             links.sort_values("NU_REGISTRO", na_position="last")
             .drop_duplicates("CO_PROFISSIONAL_SUS", keep="first")
@@ -297,13 +333,20 @@ class DermETL:
         )
         profs = profs.merge(crm, on="CO_PROFISSIONAL_SUS", how="left")
 
+        # Stats vs broader derm-any population (for preflight transparency)
+        est_derm_any["active"] = est_derm_any["CO_MOTIVO_DESAB"].isna()
+        est_derm_any["in_scope_type"] = est_derm_any["TP_UNIDADE"].isin(IN_SCOPE_TP_UNIDADE)
+
         universe = {
             "establishments": est_ok,
             "links": links,
             "professionals": profs,
-            "estab_raw_with_derm_cbo": len(est),
-            "estab_inactive": int((~est["active"]).sum()),
-            "estab_wrong_type": int((est["active"] & ~est["in_scope_type"]).sum()),
+            "estab_raw_with_derm_cbo": len(est_derm_any),
+            "estab_inactive": int((~est_derm_any["active"]).sum()),
+            "estab_wrong_type": int((est_derm_any["active"] & ~est_derm_any["in_scope_type"]).sum()),
+            "estab_excluded_not_pure_derm": int(
+                est_derm_any["active"].sum() - len(est_ok)
+            ),
         }
         self._cache["universe"] = universe
         return universe
@@ -385,6 +428,9 @@ class DermETL:
             "professionals_with_crm": int(profs["NU_REGISTRO"].notna().sum()) if len(profs) else 0,
             "filtered_out_inactive": u["estab_inactive"],
             "filtered_out_wrong_unit_type": u["estab_wrong_type"],
+            "filtered_out_not_pure_derm_or_hospital": u.get("estab_excluded_not_pure_derm"),
+            "scope": "pure_derm_clinics_only",
+            "unit_types_note": "04/22/36 only; excludes plastic + odonto co-located",
             "match_reuse_by_cnes": int(reuse_cnes.sum()),
             "match_reuse_by_cnpj": int(reuse_cnpj.sum()),
             "match_insert_new": insert_n,
@@ -1210,6 +1256,158 @@ class DermETL:
     # ------------------------------------------------------------------
     # Verify
     # ------------------------------------------------------------------
+    def prune_to_universe(self) -> dict[str, Any]:
+        """Remove DERMATOLOGIA rows outside pure-derm clinic universe. Keeps ORTOPEDIA."""
+        logger.info("=== PRUNE TO PURE DERM ===")
+        u = self.build_universe()
+        keep_units = set(u["establishments"]["CO_UNIDADE"])
+        keep_cnes = {
+            digits(c, 7)
+            for c in u["establishments"]["CO_CNES"].tolist()
+            if digits(c, 7)
+        }
+        logger.info("Keep universe: %s units", len(keep_units))
+
+        if self.dry_run:
+            with self.engine.connect() as conn:
+                derm_fac = pd.read_sql(
+                    text(
+                        """
+                        SELECT f.id, f.cnes_unit_id, f.cnes_code, f.source_provider
+                        FROM facilities f
+                        JOIN facility_vertical_profiles fvp ON fvp.facility_id = f.id
+                        JOIN business_verticals bv ON bv.id = fvp.vertical_id
+                        WHERE bv.code = 'DERMATOLOGIA'
+                        """
+                    ),
+                    conn,
+                )
+            derm_fac["cnes_code_n"] = derm_fac["cnes_code"].map(lambda x: digits(x, 7) if x else None)
+            keep_ids = set(
+                derm_fac.loc[
+                    derm_fac["cnes_unit_id"].isin(keep_units)
+                    | derm_fac["cnes_code_n"].isin(keep_cnes),
+                    "id",
+                ]
+            )
+            report = {
+                "dry_run": True,
+                "keep": len(keep_ids),
+                "drop_profiles": int(len(derm_fac) - len(keep_ids)),
+            }
+            logger.info("dry-run prune: %s", report)
+            return report
+
+        with self.engine.begin() as conn:
+            pd.DataFrame({"cnes_unit_id": list(keep_units)}).to_sql(
+                "_derm_keep_units", conn, if_exists="replace", index=False
+            )
+            pd.DataFrame({"cnes_code": list(keep_cnes)}).to_sql(
+                "_derm_keep_cnes", conn, if_exists="replace", index=False
+            )
+
+            keep_ids = [
+                r[0]
+                for r in conn.execute(
+                    text(
+                        """
+                        SELECT DISTINCT f.id
+                        FROM facilities f
+                        WHERE f.cnes_unit_id IN (SELECT cnes_unit_id FROM _derm_keep_units)
+                           OR f.cnes_code IN (SELECT cnes_code FROM _derm_keep_cnes)
+                        """
+                    )
+                )
+            ]
+            pd.DataFrame({"facility_id": keep_ids}).to_sql(
+                "_derm_keep_fac", conn, if_exists="replace", index=False
+            )
+
+            # 1) Drop DERMATOLOGIA profiles not in keep set
+            r1 = conn.execute(
+                text(
+                    """
+                    DELETE FROM facility_vertical_profiles fvp
+                    USING business_verticals bv
+                    WHERE fvp.vertical_id = bv.id
+                      AND bv.code = 'DERMATOLOGIA'
+                      AND NOT EXISTS (
+                        SELECT 1 FROM _derm_keep_fac k WHERE k.facility_id = fvp.facility_id
+                      )
+                    """
+                )
+            )
+            logger.info("Deleted derm profiles: %s", r1.rowcount)
+
+            # 2) Drop derm professional links outside keep set
+            r2 = conn.execute(
+                text(
+                    """
+                    DELETE FROM facility_professionals fp
+                    WHERE fp.occupation_code = :cbo
+                      AND NOT EXISTS (
+                        SELECT 1 FROM _derm_keep_fac k WHERE k.facility_id = fp.facility_id
+                      )
+                    """
+                ),
+                {"cbo": CBO_DERM},
+            )
+            logger.info("Deleted derm facility_professionals: %s", r2.rowcount)
+
+            # 3) Delete cnes-only facilities no longer in derm and not in ORTOPEDIA
+            r3 = conn.execute(
+                text(
+                    """
+                    DELETE FROM facilities f
+                    WHERE f.source_provider = :sp
+                      AND NOT EXISTS (
+                        SELECT 1 FROM _derm_keep_fac k WHERE k.facility_id = f.id
+                      )
+                      AND NOT EXISTS (
+                        SELECT 1
+                        FROM facility_vertical_profiles fvp
+                        JOIN business_verticals bv ON bv.id = fvp.vertical_id
+                        WHERE fvp.facility_id = f.id AND bv.code = 'ORTOPEDIA'
+                      )
+                    """
+                ),
+                {"sp": SOURCE_PROVIDER},
+            )
+            logger.info("Deleted orphan cnes facilities: %s", r3.rowcount)
+
+            # 4) Delete cnes professionals with no remaining links
+            r4 = conn.execute(
+                text(
+                    """
+                    DELETE FROM professionals p
+                    WHERE p.source_provider = :sp
+                      AND NOT EXISTS (
+                        SELECT 1 FROM facility_professionals fp
+                        WHERE fp.professional_id = p.id
+                      )
+                    """
+                ),
+                {"sp": SOURCE_PROVIDER},
+            )
+            logger.info("Deleted orphan cnes professionals: %s", r4.rowcount)
+
+            conn.execute(text("DROP TABLE IF EXISTS _derm_keep_units"))
+            conn.execute(text("DROP TABLE IF EXISTS _derm_keep_cnes"))
+            conn.execute(text("DROP TABLE IF EXISTS _derm_keep_fac"))
+
+            report = {
+                "keep_facilities": len(keep_ids),
+                "deleted_derm_profiles": r1.rowcount,
+                "deleted_derm_fp": r2.rowcount,
+                "deleted_cnes_facilities": r3.rowcount,
+                "deleted_orphan_professionals": r4.rowcount,
+            }
+
+        out = self.out_dir / f"derm_etl_prune_{self.v}.json"
+        out.write_text(json.dumps(report, indent=2), encoding="utf-8")
+        logger.info("Prune report: %s", report)
+        return report
+
     def verify(self) -> dict[str, Any]:
         logger.info("=== VERIFY ===")
         with self.engine.connect() as conn:
@@ -1271,6 +1469,7 @@ class DermETL:
         self.load_professionals(fmap)
         self.load_services(fmap)
         self.load_representatives(fmap)
+        self.prune_to_universe()
         self.verify()
 
 
@@ -1291,6 +1490,7 @@ def main() -> None:
             "professionals",
             "services",
             "representatives",
+            "prune",
             "verify",
             "all",
         ],
@@ -1320,6 +1520,9 @@ def main() -> None:
         vid = etl.ensure_vertical()
         fmap = etl.load_facilities(vid)
         etl.load_representatives(fmap)
+    elif args.step == "prune":
+        etl.prune_to_universe()
+        etl.verify()
     elif args.step == "verify":
         etl.verify()
     else:
