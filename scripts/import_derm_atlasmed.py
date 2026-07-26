@@ -1216,59 +1216,98 @@ class DermETL:
         return result.rowcount if result.rowcount is not None else len(rdf)
 
     def load_representatives(self, facility_map: pd.DataFrame) -> None:
-        """
-        High-assertion contacts only:
-          1) Official CNES rlEstabRepresentante
-          2) Clinical director (REG_DIRETORCLN) uniquely matched to an on-site
-             dermatologist CRM (NU_REGISTRO) at the same unit
-        Skips sole-derm heuristics and masked-CPF joins.
-        """
-        logger.info("=== REPRESENTATIVES (high assertion) ===")
-        unit_ids = set(facility_map["CO_UNIDADE"])
-        rows: list[dict[str, Any]] = []
-        director_facility_names: list[tuple[str, str]] = []  # facility_id, name
-
-        # --- 1) Official legal / institutional representatives ---
+        """Official CNES rlEstabRepresentante only (high assertion)."""
+        logger.info("=== REPRESENTATIVES (official CNES only) ===")
         path = self.f("rlEstabRepresentante")
-        if path.exists():
-            rep = read_csv(path)
-            rep = rep.merge(facility_map, on="CO_UNIDADE", how="inner")
-            rep = rep.dropna(subset=["NO_REPRESENTANTE"])
-            for _, r in rep.iterrows():
-                cpf = digits(r.get("CO_CPF"), 11)
-                cargo = (r.get("DS_CARGO") or "").upper()
-                is_legal = any(
-                    k in cargo
-                    for k in ("PRESIDENTE", "REPRESENTANTE", "PROVEDOR", "REITOR", "DIRETOR")
-                )
-                key = f"legal|{r['CO_UNIDADE']}|{cpf or ''}|{r['NO_REPRESENTANTE']}"
-                rows.append(
-                    {
-                        "id": new_id(),
-                        "facility_id": r["facility_id"],
-                        "representative_name": r["NO_REPRESENTANTE"],
-                        "role_title": r.get("DS_CARGO") or "Representante legal",
-                        "email": clean_email(r.get("DS_E_MAIL")),
-                        "tax_id": cpf,
-                        "contact_type": "DECISOR" if is_legal else "PROFESSIONAL",
-                        "is_partner": False,
-                        "is_administrator": is_legal,
-                        "is_decision_maker": is_legal,
-                        "is_buyer": False,
-                        "is_biller": False,
-                        "is_secretary": False,
-                        "source_provider": SOURCE_PROVIDER,
-                        "external_source_key": key[:240],
-                        "source_active": True,
-                        "created_at": NOW,
-                        "updated_at": NOW,
-                    }
-                )
-            logger.info("Official representantes: %s", len(rep))
-        else:
+        if not path.exists():
             logger.warning("Representatives file missing: %s", path)
+            return
+        rep = read_csv(path)
+        rep = rep.merge(facility_map, on="CO_UNIDADE", how="inner")
+        rep = rep.dropna(subset=["NO_REPRESENTANTE"])
+        rows: list[dict[str, Any]] = []
+        for _, r in rep.iterrows():
+            cpf = digits(r.get("CO_CPF"), 11)
+            cargo = (r.get("DS_CARGO") or "").upper()
+            is_legal = any(
+                k in cargo
+                for k in ("PRESIDENTE", "REPRESENTANTE", "PROVEDOR", "REITOR", "DIRETOR")
+            )
+            key = f"legal|{r['CO_UNIDADE']}|{cpf or ''}|{r['NO_REPRESENTANTE']}"
+            rows.append(
+                {
+                    "id": new_id(),
+                    "facility_id": r["facility_id"],
+                    "representative_name": r["NO_REPRESENTANTE"],
+                    "role_title": r.get("DS_CARGO") or "Representante legal",
+                    "email": clean_email(r.get("DS_E_MAIL")),
+                    "tax_id": cpf,
+                    "contact_type": "DECISOR" if is_legal else "PROFESSIONAL",
+                    "is_partner": False,
+                    "is_administrator": is_legal,
+                    "is_decision_maker": is_legal,
+                    "is_buyer": False,
+                    "is_biller": False,
+                    "is_secretary": False,
+                    "source_provider": SOURCE_PROVIDER,
+                    "external_source_key": key[:240],
+                    "source_active": True,
+                    "created_at": NOW,
+                    "updated_at": NOW,
+                }
+            )
+        logger.info("Official representantes: %s", len(rows))
+        n = self._insert_representatives(rows)
+        logger.info("Representatives inserted: %s", n)
 
-        # --- 2) Clinical director ↔ unique on-site dermatologist CRM ---
+    def fill_responsible_names(self, facility_map: Optional[pd.DataFrame] = None) -> int:
+        """
+        Null-only fill facilities.responsible_name from clinical director when
+        REG_DIRETORCLN uniquely matches an on-site professional CRM (any CBO).
+
+        If facility_map is None, map all DB facilities that have cnes_unit_id / cnes_code
+        (covers DERMATOLOGIA + ORTOPEDIA).
+        """
+        logger.info("=== RESPONSIBLE NAME (director CRM match) ===")
+        if facility_map is None:
+            with self.engine.connect() as conn:
+                fac = pd.read_sql(
+                    text(
+                        """
+                        SELECT id AS facility_id, cnes_unit_id, cnes_code
+                        FROM facilities
+                        WHERE cnes_unit_id IS NOT NULL OR cnes_code IS NOT NULL
+                        """
+                    ),
+                    conn,
+                )
+            est_all = read_csv(
+                self.f("tbEstabelecimento"),
+                usecols=["CO_UNIDADE", "CO_CNES"],
+            )
+            est_all["cnes_code"] = est_all["CO_CNES"].map(lambda x: digits(x, 7))
+            by_unit = est_all.dropna(subset=["CO_UNIDADE"]).drop_duplicates("CO_UNIDADE")
+            by_code = (
+                est_all.dropna(subset=["cnes_code"])
+                .drop_duplicates("cnes_code")
+                [["cnes_code", "CO_UNIDADE"]]
+            )
+
+            fac["cnes_code_n"] = fac["cnes_code"].map(lambda x: digits(x, 7) if x else None)
+            m1 = fac.dropna(subset=["cnes_unit_id"]).merge(
+                by_unit[["CO_UNIDADE"]],
+                left_on="cnes_unit_id",
+                right_on="CO_UNIDADE",
+                how="inner",
+            )[["facility_id", "CO_UNIDADE"]]
+            rem = fac[~fac["facility_id"].isin(set(m1["facility_id"]))]
+            m2 = rem.dropna(subset=["cnes_code_n"]).merge(
+                by_code, left_on="cnes_code_n", right_on="cnes_code", how="inner"
+            )[["facility_id", "CO_UNIDADE"]]
+            facility_map = pd.concat([m1, m2], ignore_index=True).drop_duplicates("facility_id")
+            logger.info("Mapped DB facilities to CNES units: %s", len(facility_map))
+
+        unit_ids = set(facility_map["CO_UNIDADE"])
         est = read_csv(
             self.f("tbEstabelecimento"),
             usecols=["CO_UNIDADE", "REG_DIRETORCLN"],
@@ -1281,23 +1320,15 @@ class DermETL:
 
         ch = read_csv(
             self.f("tbCargaHorariaSus"),
-            usecols=[
-                "CO_UNIDADE",
-                "CO_PROFISSIONAL_SUS",
-                "CO_CBO",
-                "NU_REGISTRO",
-                "SG_UF_CRM",
-            ],
+            usecols=["CO_UNIDADE", "CO_PROFISSIONAL_SUS", "NU_REGISTRO"],
         )
         ch = ch[
-            (ch["CO_UNIDADE"].isin(unit_ids))
-            & (ch["CO_CBO"] == CBO_DERM)
+            ch["CO_UNIDADE"].isin(unit_ids)
             & ch["NU_REGISTRO"].notna()
             & ch["CO_PROFISSIONAL_SUS"].notna()
         ].copy()
         ch["reg"] = ch["NU_REGISTRO"].map(lambda x: (digits(x) or "").lstrip("0") or None)
         ch = ch.dropna(subset=["reg"])
-        # Unique (unit, CRM reg) only — avoid ambiguous multi-matches
         uniq = (
             ch.groupby(["CO_UNIDADE", "reg"])["CO_PROFISSIONAL_SUS"]
             .nunique()
@@ -1305,103 +1336,62 @@ class DermETL:
         )
         uniq = uniq[uniq["n"] == 1][["CO_UNIDADE", "reg"]]
         matched = est.merge(uniq, on=["CO_UNIDADE", "reg"]).merge(
-            ch[["CO_UNIDADE", "reg", "CO_PROFISSIONAL_SUS", "SG_UF_CRM"]].drop_duplicates(
+            ch[["CO_UNIDADE", "reg", "CO_PROFISSIONAL_SUS"]].drop_duplicates(
                 ["CO_UNIDADE", "reg", "CO_PROFISSIONAL_SUS"]
             ),
             on=["CO_UNIDADE", "reg"],
         )
         matched = matched.merge(facility_map, on="CO_UNIDADE", how="inner")
+        logger.info("Unique director CRM matches: %s facilities", matched["facility_id"].nunique())
 
-        # Resolve names + CPF from professionals already in DB (cnes)
-        with self.engine.connect() as conn:
-            pros = pd.read_sql(
+        # Resolve names from CNES professional file (works for ortho + derm)
+        prof_ids = set(matched["CO_PROFISSIONAL_SUS"])
+        names: dict[str, str] = {}
+        for chunk in pd.read_csv(
+            self.f("tbDadosProfissionalSus"),
+            sep=";",
+            dtype=str,
+            encoding="latin1",
+            usecols=["CO_PROFISSIONAL_SUS", "NO_PROFISSIONAL"],
+            chunksize=300_000,
+        ):
+            chunk.columns = chunk.columns.str.strip().str.strip('"')
+            chunk["CO_PROFISSIONAL_SUS"] = clean_series(chunk["CO_PROFISSIONAL_SUS"])
+            chunk["NO_PROFISSIONAL"] = clean_series(chunk["NO_PROFISSIONAL"])
+            hit = chunk[
+                chunk["CO_PROFISSIONAL_SUS"].isin(prof_ids) & chunk["NO_PROFISSIONAL"].notna()
+            ]
+            for _, r in hit.iterrows():
+                names[r["CO_PROFISSIONAL_SUS"]] = r["NO_PROFISSIONAL"]
+
+        updates = []
+        for _, r in matched.drop_duplicates("facility_id").iterrows():
+            name = names.get(r["CO_PROFISSIONAL_SUS"])
+            if name:
+                updates.append((r["facility_id"], name))
+        logger.info("Director matches with resolvable name: %s", len(updates))
+
+        if self.dry_run or not updates:
+            return len(updates)
+
+        rdf = pd.DataFrame(updates, columns=["facility_id", "responsible_name"])
+        with self.engine.begin() as conn:
+            rdf.to_sql("_resp_name_tmp", conn, if_exists="replace", index=False)
+            result = conn.execute(
                 text(
                     """
-                    SELECT cnes_professional_id, full_name, first_name, last_name, tax_id
-                    FROM professionals
-                    WHERE source_provider = :sp AND cnes_professional_id IS NOT NULL
+                    UPDATE facilities f
+                    SET responsible_name = t.responsible_name,
+                        updated_at = NOW()
+                    FROM _resp_name_tmp t
+                    WHERE f.id = t.facility_id
+                      AND (f.responsible_name IS NULL OR btrim(f.responsible_name) = '')
                     """
-                ),
-                conn,
-                params={"sp": SOURCE_PROVIDER},
-            )
-        name_map = {
-            r["cnes_professional_id"]: (
-                r["full_name"]
-                or " ".join(
-                    x for x in [r["first_name"], r["last_name"]] if x
-                ).strip()
-                or None
-            )
-            for _, r in pros.iterrows()
-        }
-        tax_map = {
-            r["cnes_professional_id"]: r["tax_id"]
-            for _, r in pros.iterrows()
-            if r["tax_id"]
-        }
-
-        director_rows = 0
-        for _, r in matched.iterrows():
-            cid = r["CO_PROFISSIONAL_SUS"]
-            name = name_map.get(cid)
-            if not name:
-                continue
-            key = f"director_crm|{r['CO_UNIDADE']}|{cid}"
-            rows.append(
-                {
-                    "id": new_id(),
-                    "facility_id": r["facility_id"],
-                    "representative_name": name,
-                    "role_title": "Diretor clínico",
-                    "email": None,
-                    "tax_id": tax_map.get(cid),
-                    "contact_type": "DECISOR",
-                    "is_partner": False,
-                    "is_administrator": True,
-                    "is_decision_maker": True,
-                    "is_buyer": False,
-                    "is_biller": False,
-                    "is_secretary": False,
-                    "source_provider": SOURCE_PROVIDER,
-                    "external_source_key": key[:240],
-                    "source_active": True,
-                    "created_at": NOW,
-                    "updated_at": NOW,
-                }
-            )
-            director_facility_names.append((r["facility_id"], name))
-            director_rows += 1
-        logger.info(
-            "Director CRM→onsite derm matches with name: %s (raw unique matches %s)",
-            director_rows,
-            matched["CO_UNIDADE"].nunique(),
-        )
-
-        logger.info("Representative candidates total: %s", len(rows))
-        n = self._insert_representatives(rows)
-        logger.info("Representatives inserted (attempted batch): %s", n)
-
-        # Null-only fill facilities.responsible_name from clinical director
-        if not self.dry_run and director_facility_names:
-            rdf = pd.DataFrame(director_facility_names, columns=["facility_id", "responsible_name"])
-            rdf = rdf.drop_duplicates("facility_id")
-            with self.engine.begin() as conn:
-                rdf.to_sql("_derm_resp_tmp", conn, if_exists="replace", index=False)
-                result = conn.execute(
-                    text(
-                        """
-                        UPDATE facilities f
-                        SET responsible_name = t.responsible_name,
-                            updated_at = NOW()
-                        FROM _derm_resp_tmp t
-                        WHERE f.id = t.facility_id
-                          AND (f.responsible_name IS NULL OR btrim(f.responsible_name) = '')
-                        """
-                    )
                 )
-                conn.execute(text("DROP TABLE IF EXISTS _derm_resp_tmp"))
-                logger.info("facilities.responsible_name filled: %s", result.rowcount)
+            )
+            conn.execute(text("DROP TABLE IF EXISTS _resp_name_tmp"))
+            logger.info("facilities.responsible_name filled: %s", result.rowcount)
+            return int(result.rowcount or 0)
 
     # ------------------------------------------------------------------
     # Verify
@@ -1619,6 +1609,7 @@ class DermETL:
         self.load_professionals(fmap)
         self.load_services(fmap)
         self.load_representatives(fmap)
+        self.fill_responsible_names()  # derm + ortho (all CNES-linked facilities)
         self.prune_to_universe()
         self.verify()
 
@@ -1640,6 +1631,7 @@ def main() -> None:
             "professionals",
             "services",
             "representatives",
+            "responsible_names",
             "prune",
             "verify",
             "all",
@@ -1670,6 +1662,8 @@ def main() -> None:
         vid = etl.ensure_vertical()
         fmap = etl.load_facilities(vid)
         etl.load_representatives(fmap)
+    elif args.step == "responsible_names":
+        etl.fill_responsible_names()
     elif args.step == "prune":
         etl.prune_to_universe()
         etl.verify()
